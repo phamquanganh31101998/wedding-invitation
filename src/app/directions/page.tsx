@@ -1,7 +1,7 @@
 'use client';
 
 import Layout from '@/components/layout/Layout';
-import { VStack, Text, Box, HStack, Button } from '@chakra-ui/react';
+import { VStack, Text, Box, Button } from '@chakra-ui/react';
 
 export default function Directions() {
   return (
