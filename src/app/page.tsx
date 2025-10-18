@@ -1,10 +1,11 @@
 'use client';
 
 import Layout from '@/components/layout/Layout';
-import CountdownTimer from '@/components/section/CountdownTimer';
-import CountdownErrorBoundary from '@/components/section/CountdownErrorBoundary';
+import CountdownSection from '@/components/section/CountdownSection';
 import { VStack, Text, Button, Box } from '@chakra-ui/react';
 import Link from 'next/link';
+
+const TARGET_DATE = new Date('2025-12-29');
 
 export default function Home() {
   return (
@@ -45,9 +46,7 @@ export default function Home() {
         </VStack>
 
         {/* Countdown Timer with Error Boundary */}
-        <CountdownErrorBoundary>
-          <CountdownTimer targetDate={new Date('2025-12-29')} />
-        </CountdownErrorBoundary>
+        <CountdownSection targetDate={TARGET_DATE} />
       </VStack>
     </Layout>
   );

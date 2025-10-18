@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
-import { CountdownErrorBoundary } from '../CountdownErrorBoundary';
+import { CountdownErrorBoundary } from '../CountdownSection/CountdownErrorBoundary';
 
 // Component that throws an error for testing
 const ThrowError: React.FC<{ shouldThrow?: boolean }> = ({
