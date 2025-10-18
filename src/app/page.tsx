@@ -3,48 +3,52 @@
 import Layout from '@/components/layout/Layout';
 import CountdownTimer from '@/components/section/CountdownTimer';
 import CountdownErrorBoundary from '@/components/section/CountdownErrorBoundary';
-import { Container, VStack, Text, Button, Box } from '@chakra-ui/react';
+import { VStack, Text, Button, Box } from '@chakra-ui/react';
 import Link from 'next/link';
 
 export default function Home() {
   return (
     <Layout>
-      <Container maxW="4xl" py={12}>
-        <VStack spacing={8} textAlign="center">
-          <Box>
-            <Text fontSize="6xl" fontWeight="bold" color="brand.600" mb={4}>
-              We&apos;re Getting Married!
-            </Text>
-            <Text fontSize="2xl" color="gray.600" mb={2}>
-              [Bride Name] & [Groom Name]
-            </Text>
-            <Text fontSize="xl" color="gray.500">
-              [Wedding Date] • [Venue Location]
-            </Text>
-          </Box>
-
-          <Text fontSize="lg" maxW="2xl" color="gray.700">
-            We&apos;re excited to celebrate our special day with you! Join us
-            for a day filled with love, laughter, and unforgettable memories.
+      <VStack spacing={8} textAlign="center" py={12}>
+        <Box>
+          <Text
+            fontSize={{ base: '4xl', sm: '5xl' }}
+            fontWeight="bold"
+            color="brand.600"
+            mb={4}
+            lineHeight="shorter"
+          >
+            We&apos;re Getting Married!
           </Text>
+          <Text fontSize={{ base: 'xl', sm: '2xl' }} color="gray.600" mb={2}>
+            [Bride Name] & [Groom Name]
+          </Text>
+          <Text fontSize={{ base: 'lg', sm: 'xl' }} color="gray.500">
+            [Wedding Date] • [Venue Location]
+          </Text>
+        </Box>
 
-          <VStack spacing={4}>
-            <Link href="/rsvp">
-              <Button colorScheme="brand" size="lg" px={8}>
-                RSVP Now
-              </Button>
-            </Link>
-            <Text fontSize="sm" color="gray.500">
-              Please respond by [RSVP Date]
-            </Text>
-          </VStack>
+        <Text fontSize={{ base: 'md', sm: 'lg' }} color="gray.700" px={2}>
+          We&apos;re excited to celebrate our special day with you! Join us for
+          a day filled with love, laughter, and unforgettable memories.
+        </Text>
 
-          {/* Countdown Timer with Error Boundary */}
-          <CountdownErrorBoundary>
-            <CountdownTimer targetDate={new Date('2025-12-29')} />
-          </CountdownErrorBoundary>
+        <VStack spacing={4}>
+          <Link href="/rsvp">
+            <Button colorScheme="brand" size="lg" px={8}>
+              RSVP Now
+            </Button>
+          </Link>
+          <Text fontSize="sm" color="gray.500">
+            Please respond by [RSVP Date]
+          </Text>
         </VStack>
-      </Container>
+
+        {/* Countdown Timer with Error Boundary */}
+        <CountdownErrorBoundary>
+          <CountdownTimer targetDate={new Date('2025-12-29')} />
+        </CountdownErrorBoundary>
+      </VStack>
     </Layout>
   );
 }

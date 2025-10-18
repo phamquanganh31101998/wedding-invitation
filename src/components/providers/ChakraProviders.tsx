@@ -7,6 +7,14 @@ const theme = extendTheme({
     initialColorMode: 'light',
     useSystemColorMode: false,
   },
+  styles: {
+    global: {
+      body: {
+        bg: 'white',
+        color: 'gray.800',
+      },
+    },
+  },
   colors: {
     brand: {
       50: '#f0f9ff',
@@ -26,12 +34,12 @@ const theme = extendTheme({
     body: 'var(--font-geist-sans)',
   },
   breakpoints: {
-    base: '0em', // 0px
-    sm: '30em', // ~480px
-    md: '48em', // ~768px
-    lg: '62em', // ~992px
-    xl: '80em', // ~1280px
-    '2xl': '96em', // ~1536px
+    base: '0em', // 0px - Mobile first
+    sm: '26.25em', // ~420px - Small tablets/large phones
+    md: '48em', // ~768px - Tablets
+    lg: '62em', // ~992px - Small desktops
+    xl: '80em', // ~1280px - Large desktops
+    '2xl': '96em', // ~1536px - Extra large
   },
   components: {
     Button: {
