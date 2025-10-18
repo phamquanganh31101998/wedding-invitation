@@ -1,1 +1,4 @@
-ID,Name,Email,Phone,Attendance,Guest Count,Message,Submitted At
+ID,Name,Relationship,Attendance,Message,Submitted At
+1760798089143,Quang Anh,Childhood Friend,yes,afafaf,2025-10-18T14:34:49.143Z
+1760798115414,Garenw,Family,no,wf,2025-10-18T14:35:15.414Z
+1760798143340,ge,Friend,yes,,2025-10-18T14:35:43.340Z

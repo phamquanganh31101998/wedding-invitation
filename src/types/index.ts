@@ -1,12 +1,17 @@
 export interface RSVPData {
   id: string;
   name: string;
-  email?: string;
-  phone?: string;
+  relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
-  guestCount: number;
   message?: string;
   submittedAt: string;
+}
+
+export interface RSVPFormData {
+  name: string;
+  relationship: string;
+  attendance: 'yes' | 'no' | 'maybe' | '';
+  message?: string;
 }
 
 export interface WeddingDetails {

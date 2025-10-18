@@ -2,6 +2,7 @@
 
 import Layout from '@/components/layout/Layout';
 import { VStack, Text, Box } from '@chakra-ui/react';
+import RSVPForm from '@/components/forms/RSVPForm';
 
 export default function RSVP() {
   return (
@@ -21,15 +22,7 @@ export default function RSVP() {
           </Text>
         </Box>
 
-        <Box p={6} bg="gray.50" borderRadius="lg" w="full">
-          <Text fontSize="lg" textAlign="center" color="gray.700">
-            RSVP Form Coming Soon
-          </Text>
-          <Text fontSize="sm" textAlign="center" color="gray.500" mt={2}>
-            This will include form fields for name, attendance, guest count, and
-            message
-          </Text>
-        </Box>
+        <RSVPForm />
       </VStack>
     </Layout>
   );
