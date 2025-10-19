@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
-import PositionField from '../PositionField';
+import PositionField from '../RelationshipField';
 
 const ChakraWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -115,29 +115,6 @@ describe('PositionField', () => {
     });
 
     expect(mockOnChange).toHaveBeenCalledWith('Friend');
-  });
-
-  it('should validate required field', () => {
-    render(
-      <ChakraWrapper>
-        <PositionField value="" onChange={mockOnChange} isRequired={true} />
-      </ChakraWrapper>
-    );
-
-    expect(screen.getByText('Relationship is required')).toBeInTheDocument();
-  });
-
-  it('should validate maximum length', () => {
-    const longRelationship = 'A'.repeat(101);
-    render(
-      <ChakraWrapper>
-        <PositionField value={longRelationship} onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Relationship must be no more than 100 characters long')
-    ).toBeInTheDocument();
   });
 
   it('should display error message when provided', () => {

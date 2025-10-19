@@ -27,14 +27,7 @@ const COMMON_RELATIONSHIPS = [
   'Friend',
   'Family',
   'Colleague',
-  'Classmate',
   'Neighbor',
-  'College Friend',
-  'Work Friend',
-  'Childhood Friend',
-  'Cousin',
-  'Sibling',
-  'Extended Family',
   'Other',
 ];
 
@@ -51,22 +44,6 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
       ref: containerRef,
       handler: onClose,
     });
-
-    const validatePosition = (position: string): string | undefined => {
-      if (isRequired && !position.trim()) {
-        return 'Relationship is required';
-      }
-
-      if (position.length < 1) {
-        return 'Relationship must be at least 1 character long';
-      }
-
-      if (position.length > 100) {
-        return 'Relationship must be no more than 100 characters long';
-      }
-
-      return undefined;
-    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
@@ -106,11 +83,9 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
       inputRef.current?.focus();
     };
 
-    const validationError = validatePosition(value) || error;
-
     return (
       <FormControl
-        isInvalid={!!validationError}
+        isInvalid={!!error}
         isRequired={isRequired}
         ref={containerRef}
         position="relative"
@@ -128,9 +103,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           onFocus={handleFocus}
           placeholder="e.g., Friend, Family, Colleague..."
           isDisabled={isDisabled}
-          aria-describedby={
-            validationError ? 'position-error' : 'position-helper'
-          }
+          aria-describedby={error ? 'position-error' : 'position-helper'}
           minH="44px" // Ensure 44px minimum touch target
           fontSize="16px" // Prevent zoom on iOS
           autoComplete="off"
@@ -186,12 +159,12 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           </Box>
         )}
 
-        {validationError ? (
-          <FormErrorMessage id="position-error">
-            {validationError}
+        {error ? (
+          <FormErrorMessage id="position-error" textAlign="left">
+            {error}
           </FormErrorMessage>
         ) : (
-          <FormHelperText id="position-helper">
+          <FormHelperText id="position-helper" textAlign="left">
             How do you know the couple? You can select from suggestions or type
             your own.
           </FormHelperText>

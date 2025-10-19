@@ -2,6 +2,7 @@
 
 import Layout from '@/components/layout/Layout';
 import CountdownSection from '@/components/section/CountdownSection';
+import RSVPSection from '@/components/section/RSVPSection';
 import { VStack, Text, Button, Box } from '@chakra-ui/react';
 import Link from 'next/link';
 
@@ -47,6 +48,8 @@ export default function Home() {
 
         {/* Countdown Timer with Error Boundary */}
         <CountdownSection targetDate={TARGET_DATE} />
+
+        <RSVPSection />
       </VStack>
     </Layout>
   );

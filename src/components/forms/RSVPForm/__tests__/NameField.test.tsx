@@ -73,45 +73,6 @@ describe('NameField', () => {
     expect(input).toHaveAttribute('aria-required', 'true');
   });
 
-  it('should validate minimum length', () => {
-    render(
-      <ChakraWrapper>
-        <NameField value="A" onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Name must be at least 2 characters long')
-    ).toBeInTheDocument();
-  });
-
-  it('should validate maximum length', () => {
-    const longName = 'A'.repeat(51);
-    render(
-      <ChakraWrapper>
-        <NameField value={longName} onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Name must be no more than 50 characters long')
-    ).toBeInTheDocument();
-  });
-
-  it('should validate character pattern', () => {
-    render(
-      <ChakraWrapper>
-        <NameField value="John123" onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText(
-        'Name can only contain letters, spaces, hyphens, and apostrophes'
-      )
-    ).toBeInTheDocument();
-  });
-
   it('should accept valid names with special characters', () => {
     render(
       <ChakraWrapper>

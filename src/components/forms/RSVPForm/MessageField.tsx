@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  FormControl,
-  FormLabel,
-  Textarea,
-  FormErrorMessage,
-  FormHelperText,
-  Text,
-  Flex,
-} from '@chakra-ui/react';
+import { FormControl, FormLabel, Textarea, Text, Flex } from '@chakra-ui/react';
 import { forwardRef } from 'react';
 
 interface MessageFieldProps {
@@ -23,18 +15,6 @@ const MAX_MESSAGE_LENGTH = 500;
 
 const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
   ({ value, onChange, error, isRequired = false, isDisabled = false }, ref) => {
-    const validateMessage = (message: string): string | undefined => {
-      if (isRequired && !message.trim()) {
-        return 'Message is required';
-      }
-
-      if (message.length > MAX_MESSAGE_LENGTH) {
-        return `Message must be no more than ${MAX_MESSAGE_LENGTH} characters long`;
-      }
-
-      return undefined;
-    };
-
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value;
       // Only update if within character limit
@@ -42,16 +22,12 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
         onChange(newValue);
       }
     };
-
-    const validationError = validateMessage(value) || error;
     const characterCount = value.length;
     const isNearLimit = characterCount > MAX_MESSAGE_LENGTH * 0.8; // 80% of limit
 
     return (
-      <FormControl isInvalid={!!validationError} isRequired={isRequired}>
-        <FormLabel htmlFor="message-field">
-          Message for the Couple (Optional)
-        </FormLabel>
+      <FormControl isInvalid={!!error} isRequired={isRequired}>
+        <FormLabel htmlFor="message-field">Message for the Couple</FormLabel>
         <Textarea
           ref={ref}
           id="message-field"
@@ -60,9 +36,7 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
           onChange={handleChange}
           placeholder="Share your excitement or well-wishes with the couple..."
           isDisabled={isDisabled}
-          aria-describedby={
-            validationError ? 'message-error' : 'message-helper'
-          }
+          aria-describedby={error ? 'message-error' : 'message-helper'}
           minH={{ base: '100px', sm: '120px' }} // Responsive height
           fontSize="16px" // Prevent zoom on iOS
           resize="vertical"
@@ -73,18 +47,7 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
         />
 
         {/* Character Counter */}
-        <Flex justify="space-between" align="center" mt={2}>
-          <div>
-            {validationError ? (
-              <FormErrorMessage id="message-error" mt={0}>
-                {validationError}
-              </FormErrorMessage>
-            ) : (
-              <FormHelperText id="message-helper" mt={0}>
-                Share your thoughts, well-wishes, or excitement for the big day
-              </FormHelperText>
-            )}
-          </div>
+        <Flex justify="right" mt={2}>
           <Text
             fontSize="sm"
             color={isNearLimit ? 'orange.500' : 'gray.500'}

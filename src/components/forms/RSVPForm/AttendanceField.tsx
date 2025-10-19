@@ -39,27 +39,8 @@ const ATTENDANCE_OPTIONS = [
 
 const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
   ({ value, onChange, error, isRequired = true, isDisabled = false }, ref) => {
-    const validateAttendance = (attendance: string): string | undefined => {
-      if (isRequired && !attendance) {
-        return 'Please select your attendance status';
-      }
-
-      const validOptions = ATTENDANCE_OPTIONS.map((option) => option.value);
-      if (attendance && !validOptions.includes(attendance)) {
-        return 'Please select a valid attendance option';
-      }
-
-      return undefined;
-    };
-
-    const validationError = validateAttendance(value) || error;
-
     return (
-      <FormControl
-        isInvalid={!!validationError}
-        isRequired={isRequired}
-        ref={ref}
-      >
+      <FormControl isInvalid={!!error} isRequired={isRequired} ref={ref}>
         <FormLabel htmlFor="attendance-field">Will you be attending?</FormLabel>
         <RadioGroup
           id="attendance-field"
@@ -67,9 +48,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
           value={value}
           onChange={onChange}
           isDisabled={isDisabled}
-          aria-describedby={
-            validationError ? 'attendance-error' : 'attendance-helper'
-          }
+          aria-describedby={error ? 'attendance-error' : 'attendance-helper'}
         >
           <Stack spacing={4} direction="column">
             {ATTENDANCE_OPTIONS.map((option) => (
@@ -92,6 +71,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
                     mt={0}
                     fontSize="sm"
                     color="gray.600"
+                    textAlign="left"
                   >
                     {option.description}
                   </FormHelperText>
@@ -100,12 +80,12 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
             ))}
           </Stack>
         </RadioGroup>
-        {validationError ? (
-          <FormErrorMessage id="attendance-error">
-            {validationError}
+        {error ? (
+          <FormErrorMessage id="attendance-error" textAlign="left">
+            {error}
           </FormErrorMessage>
         ) : (
-          <FormHelperText id="attendance-helper">
+          <FormHelperText id="attendance-helper" textAlign="left">
             Please let us know if you&apos;ll be able to join us for our special
             day
           </FormHelperText>

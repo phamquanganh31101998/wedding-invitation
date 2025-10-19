@@ -96,19 +96,6 @@ describe('MessageField', () => {
     expect(counter).toHaveStyle('color: var(--chakra-colors-orange-500)');
   });
 
-  it('should validate maximum length', () => {
-    const longMessage = 'A'.repeat(501);
-    render(
-      <ChakraWrapper>
-        <MessageField value={longMessage} onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Message must be no more than 500 characters long')
-    ).toBeInTheDocument();
-  });
-
   it('should display error message when provided', () => {
     render(
       <ChakraWrapper>
@@ -117,16 +104,6 @@ describe('MessageField', () => {
     );
 
     expect(screen.getByText('Custom error')).toBeInTheDocument();
-  });
-
-  it('should validate required field when isRequired is true', () => {
-    render(
-      <ChakraWrapper>
-        <MessageField value="" onChange={mockOnChange} isRequired={true} />
-      </ChakraWrapper>
-    );
-
-    expect(screen.getByText('Message is required')).toBeInTheDocument();
   });
 
   it('should be disabled when isDisabled is true', () => {

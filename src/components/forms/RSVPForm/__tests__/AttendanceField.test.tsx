@@ -78,18 +78,6 @@ describe('AttendanceField', () => {
     expect(yesOption).toBeChecked();
   });
 
-  it('should validate required field when no option selected', () => {
-    render(
-      <ChakraWrapper>
-        <AttendanceField value="" onChange={mockOnChange} isRequired={true} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Please select your attendance status')
-    ).toBeInTheDocument();
-  });
-
   it('should display error message when provided', () => {
     render(
       <ChakraWrapper>
@@ -125,24 +113,10 @@ describe('AttendanceField', () => {
       </ChakraWrapper>
     );
 
-    const yesOption = screen.getByDisplayValue('yes');
-    const noOption = screen.getByDisplayValue('no');
-    const maybeOption = screen.getByDisplayValue('maybe');
+    const radioInputs = screen.getAllByRole('radio');
 
-    expect(yesOption).toBeDisabled();
-    expect(noOption).toBeDisabled();
-    expect(maybeOption).toBeDisabled();
-  });
-
-  it('should validate invalid attendance value', () => {
-    render(
-      <ChakraWrapper>
-        <AttendanceField value="invalid" onChange={mockOnChange} />
-      </ChakraWrapper>
-    );
-
-    expect(
-      screen.getByText('Please select a valid attendance option')
-    ).toBeInTheDocument();
+    radioInputs.forEach((radio) => {
+      expect(radio).toBeDisabled();
+    });
   });
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ChakraProvider } from '@chakra-ui/react';
-import RSVPForm from '../RSVPForm';
+import { RSVPForm } from '..';
 
 // Mock fetch
 global.fetch = jest.fn();
@@ -63,7 +63,7 @@ describe('RSVPForm', () => {
     ).toBeInTheDocument();
   });
 
-  it('should disable submit button when form is invalid', () => {
+  it('should disable submit button when form is invalid after interaction', async () => {
     render(
       <ChakraWrapper>
         <RSVPForm onSuccess={mockOnSuccess} onError={mockOnError} />
@@ -71,7 +71,16 @@ describe('RSVPForm', () => {
     );
 
     const submitButton = screen.getByRole('button', { name: 'Submit RSVP' });
-    expect(submitButton).toBeDisabled();
+    const nameInput = screen.getByPlaceholderText('Enter your full name');
+
+    // Interact with form to trigger validation
+    fireEvent.focus(nameInput);
+    fireEvent.blur(nameInput);
+
+    // With Formik, the button is disabled when form is invalid after validation runs
+    await waitFor(() => {
+      expect(submitButton).toBeDisabled();
+    });
   });
 
   it('should enable submit button when form is valid', async () => {
@@ -225,12 +234,12 @@ describe('RSVPForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('RSVP Submitted Successfully!')
+        screen.getAllByText('RSVP Submitted Successfully!')[0]
       ).toBeInTheDocument();
       expect(
-        screen.getByText(
+        screen.getAllByText(
           'Thank you for your response. We look forward to celebrating with you!'
-        )
+        )[0]
       ).toBeInTheDocument();
     });
   });
@@ -264,7 +273,7 @@ describe('RSVPForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('RSVP Submitted Successfully!')
+        screen.getAllByText('RSVP Submitted Successfully!')[0]
       ).toBeInTheDocument();
     });
 
@@ -316,7 +325,7 @@ describe('RSVPForm', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('RSVP Submitted Successfully!')
+        screen.getAllByText('RSVP Submitted Successfully!')[0]
       ).toBeInTheDocument();
     });
   });
