@@ -5,6 +5,7 @@ import {
   FormLabel,
   Input,
   FormErrorMessage,
+  FormHelperText,
 } from '@chakra-ui/react';
 import { forwardRef } from 'react';
 
@@ -39,10 +40,14 @@ const NameField = forwardRef<HTMLInputElement, NameFieldProps>(
           minH="44px" // Ensure 44px minimum touch target
           fontSize="16px" // Prevent zoom on iOS
         />
-        {error && (
+        {error ? (
           <FormErrorMessage id="name-error" textAlign="left">
             {error}
           </FormErrorMessage>
+        ) : (
+          <FormHelperText id="name-helper" textAlign="left">
+            Enter your full name as you&apos;d like it to appear
+          </FormHelperText>
         )}
       </FormControl>
     );

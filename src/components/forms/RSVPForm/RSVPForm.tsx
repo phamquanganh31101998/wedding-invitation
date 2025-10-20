@@ -147,7 +147,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
               <NameField
                 value={values.name}
                 onChange={(value) => setFieldValue('name', value)}
-                error={touched.name ? errors.name : undefined}
+                error={errors.name}
                 isDisabled={isSubmitting}
               />
 
@@ -155,7 +155,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
               <PositionField
                 value={values.relationship}
                 onChange={(value) => setFieldValue('relationship', value)}
-                error={touched.relationship ? errors.relationship : undefined}
+                error={errors.relationship}
                 isDisabled={isSubmitting}
               />
 
@@ -163,7 +163,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
               <AttendanceField
                 value={values.attendance}
                 onChange={(value) => setFieldValue('attendance', value)}
-                error={touched.attendance ? errors.attendance : undefined}
+                error={errors.attendance}
                 isDisabled={isSubmitting}
               />
 
@@ -171,7 +171,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
               <MessageField
                 value={values.message || ''}
                 onChange={(value) => setFieldValue('message', value)}
-                error={touched.message ? errors.message : undefined}
+                error={errors.message}
                 isDisabled={isSubmitting}
                 isRequired={false}
               />

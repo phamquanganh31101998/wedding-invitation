@@ -1,6 +1,14 @@
 'use client';
 
-import { FormControl, FormLabel, Textarea, Text, Flex } from '@chakra-ui/react';
+import {
+  FormControl,
+  FormLabel,
+  Textarea,
+  FormErrorMessage,
+  FormHelperText,
+  Text,
+  Flex,
+} from '@chakra-ui/react';
 import { forwardRef } from 'react';
 
 interface MessageFieldProps {
@@ -46,8 +54,19 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
           }}
         />
 
-        {/* Character Counter */}
-        <Flex justify="right" mt={2}>
+        {/* Character Counter and Helper/Error Text */}
+        <Flex justify="space-between" align="center" mt={2}>
+          <div>
+            {error ? (
+              <FormErrorMessage id="message-error" mt={0} textAlign="left">
+                {error}
+              </FormErrorMessage>
+            ) : (
+              <FormHelperText id="message-helper" mt={0} textAlign="left">
+                Share your thoughts, well-wishes, or excitement for the big day
+              </FormHelperText>
+            )}
+          </div>
           <Text
             fontSize="sm"
             color={isNearLimit ? 'orange.500' : 'gray.500'}

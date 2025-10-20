@@ -22,18 +22,11 @@ interface AttendanceFieldProps {
 const ATTENDANCE_OPTIONS = [
   {
     value: 'yes',
-    label: 'Yes, I&apos;ll be there',
-    description: 'Looking forward to celebrating with you!',
+    label: 'Yes',
   },
   {
     value: 'no',
-    label: 'No, I can&apos;t make it',
-    description: 'Wishing you a wonderful celebration',
-  },
-  {
-    value: 'maybe',
-    label: 'Maybe',
-    description: 'I&apos;m not sure yet, but I&apos;ll let you know',
+    label: 'No',
   },
 ];
 
@@ -50,7 +43,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
           isDisabled={isDisabled}
           aria-describedby={error ? 'attendance-error' : 'attendance-helper'}
         >
-          <Stack spacing={4} direction="column">
+          <Stack spacing={1} direction="column">
             {ATTENDANCE_OPTIONS.map((option) => (
               <Radio
                 key={option.value}
@@ -59,22 +52,15 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
                 minH="44px" // Ensure 44px minimum touch target
                 display="flex"
                 alignItems="center"
+                justifyContent="flex-start"
                 _focus={{
                   boxShadow: 'outline',
                 }}
+                textAlign="left"
                 aria-describedby={`attendance-${option.value}-description`}
               >
-                <Stack spacing={1} ml={2}>
+                <Stack spacing={1} ml={2} textAlign="left" align="flex-start">
                   <span>{option.label}</span>
-                  <FormHelperText
-                    id={`attendance-${option.value}-description`}
-                    mt={0}
-                    fontSize="sm"
-                    color="gray.600"
-                    textAlign="left"
-                  >
-                    {option.description}
-                  </FormHelperText>
                 </Stack>
               </Radio>
             ))}
