@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ChakraProviders } from '@/components/providers/ChakraProviders';
+import {
+  AudioProvider,
+  FloatingMusicButton,
+} from '@/components/music/MusicPlayer';
 import './globals.css';
 
 const geistSans = Geist({
@@ -28,7 +32,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ChakraProviders>{children}</ChakraProviders>
+        <ChakraProviders>
+          <AudioProvider>
+            {children}
+            <FloatingMusicButton />
+          </AudioProvider>
+        </ChakraProviders>
       </body>
     </html>
   );

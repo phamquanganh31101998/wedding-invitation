@@ -57,3 +57,6 @@ export type CountdownSize = 'sm' | 'md' | 'lg';
 
 // Countdown timer size configurations mapping
 export type CountdownSizeConfigs = Record<CountdownSize, CountdownSizeConfig>;
+
+// Music Player Types
+export * from './music';
