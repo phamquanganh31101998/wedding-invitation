@@ -1,23 +1,34 @@
 'use client';
-
-import { useRef, useEffect, useCallback } from 'react';
-import { useAudioContext } from './AudioContext';
+import { useEffect, useRef } from 'react';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { setError, nextTrack } from '@/store/slices/audioSlice';
 
 /**
- * Custom hook for audio player functionality
- * Manages HTML5 Audio API interactions and state
+ * Custom hook that manages the actual HTML5 audio element
+ * and syncs it with Redux state
  */
 export const useAudioPlayer = () => {
-  const { state, controls } = useAudioContext();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const dispatch = useAppDispatch();
+  const { isPlaying, currentTrack, hasError } = useAppSelector(
+    (state) => state.audio
+  );
 
   // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
-      audioRef.current.volume = state.volume;
+
+      // Add error handler
+      audioRef.current.addEventListener('error', () => {
+        dispatch(setError(true));
+      });
+
+      // Add ended handler - auto play next track
+      audioRef.current.addEventListener('ended', () => {
+        dispatch(nextTrack());
+      });
     }
 
     return () => {
@@ -25,200 +36,46 @@ export const useAudioPlayer = () => {
         audioRef.current.pause();
         audioRef.current.src = '';
       }
-      if (timeUpdateIntervalRef.current) {
-        clearInterval(timeUpdateIntervalRef.current);
-      }
     };
-  }, []);
+  }, [dispatch]);
 
   // Update audio source when current track changes
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !state.currentTrack) return;
-
-    const loadNewTrack = async () => {
-      try {
-        controls.setLoading(true);
-        controls.setError(false);
-
-        // Stop current playback
-        audio.pause();
-        audio.currentTime = 0;
-
-        // Set new source
-        audio.src = state.currentTrack!.src;
-
-        // Load the new track
-        await new Promise((resolve, reject) => {
-          const handleCanPlay = () => {
-            audio.removeEventListener('canplay', handleCanPlay);
-            audio.removeEventListener('error', handleError);
-            resolve(void 0);
-          };
-
-          const handleError = () => {
-            audio.removeEventListener('canplay', handleCanPlay);
-            audio.removeEventListener('error', handleError);
-            reject(new Error('Failed to load audio'));
-          };
-
-          audio.addEventListener('canplay', handleCanPlay);
-          audio.addEventListener('error', handleError);
-          audio.load();
-        });
-
-        controls.setLoading(false);
-      } catch (error) {
-        console.error('Error loading track:', error);
-        controls.setError(true);
-        controls.setLoading(false);
-      }
-    };
-
-    loadNewTrack();
-  }, [state.currentTrack, controls]);
+    if (audioRef.current && currentTrack) {
+      audioRef.current.src = currentTrack.url;
+      audioRef.current.load();
+    }
+  }, [currentTrack]);
 
   // Handle play/pause state changes
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !state.currentTrack) return;
-
-    if (state.isPlaying && !state.isLoading && !state.hasError) {
-      audio.play().catch((error) => {
-        console.error('Error playing audio:', error);
-        controls.setError(true);
-      });
-    } else {
-      audio.pause();
+    if (!audioRef.current || !currentTrack) {
+      return;
     }
-  }, [
-    state.isPlaying,
-    state.isLoading,
-    state.hasError,
-    state.currentTrack,
-    controls,
-  ]);
 
-  // Handle volume changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = state.volume;
-    }
-  }, [state.volume]);
-
-  // Handle seek changes
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio && Math.abs(audio.currentTime - state.currentTime) > 1) {
-      audio.currentTime = state.currentTime;
-    }
-  }, [state.currentTime]);
-
-  // Set up audio event listeners
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const handleLoadedMetadata = () => {
-      controls.setDuration(audio.duration || 0);
-    };
-
-    const handleTimeUpdate = () => {
-      controls.setCurrentTime(audio.currentTime);
-    };
-
-    const handleEnded = () => {
-      controls.next();
-    };
-
-    const handleError = () => {
-      console.error('Audio playback error');
-      controls.setError(true);
-    };
-
-    const handleCanPlay = () => {
-      controls.setLoading(false);
-    };
-
-    const handleWaiting = () => {
-      controls.setLoading(true);
-    };
-
-    const handlePlaying = () => {
-      controls.setLoading(false);
-    };
-
-    // Add event listeners
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('error', handleError);
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('waiting', handleWaiting);
-    audio.addEventListener('playing', handlePlaying);
-
-    return () => {
-      // Remove event listeners
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('error', handleError);
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('waiting', handleWaiting);
-      audio.removeEventListener('playing', handlePlaying);
-    };
-  }, [controls]);
-
-  // Enhanced control functions with error handling
-  const enhancedControls = {
-    ...controls,
-    play: useCallback(() => {
-      if (state.hasError) {
-        controls.setError(false);
-      }
-      if (state.playlist.length === 0) {
-        console.warn('No tracks in playlist');
-        return;
-      }
-      controls.play();
-    }, [controls, state.playlist.length, state.hasError]),
-
-    pause: useCallback(() => {
-      controls.pause();
-    }, [controls]),
-
-    togglePlayPause: useCallback(() => {
-      if (state.isPlaying) {
-        controls.pause();
+    if (isPlaying && !hasError) {
+      // Check if audio is ready to play
+      if (audioRef.current.readyState >= 2) {
+        // HAVE_CURRENT_DATA
+        audioRef.current.play().catch(() => {
+          dispatch(setError(true));
+        });
       } else {
-        enhancedControls.play();
+        // Wait for audio to be ready
+        const handleCanPlay = () => {
+          if (audioRef.current && isPlaying) {
+            audioRef.current.play().catch(() => {
+              dispatch(setError(true));
+            });
+          }
+          audioRef.current?.removeEventListener('canplay', handleCanPlay);
+        };
+        audioRef.current.addEventListener('canplay', handleCanPlay);
       }
-    }, [state.isPlaying, controls]),
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying, currentTrack, hasError, dispatch]);
 
-    seek: useCallback(
-      (time: number) => {
-        const audio = audioRef.current;
-        if (audio && time >= 0 && time <= state.duration) {
-          audio.currentTime = time;
-          controls.setCurrentTime(time);
-        }
-      },
-      [controls, state.duration]
-    ),
-
-    setVolume: useCallback(
-      (volume: number) => {
-        const clampedVolume = Math.max(0, Math.min(1, volume));
-        controls.setVolume(clampedVolume);
-      },
-      [controls]
-    ),
-  };
-
-  return {
-    audioRef,
-    ...state,
-    ...enhancedControls,
-  };
+  return audioRef.current;
 };

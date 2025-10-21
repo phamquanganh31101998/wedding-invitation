@@ -17,6 +17,7 @@ export interface AudioState {
   hasError: boolean;
   playlist: Track[];
   currentTrack: Track | null;
+  currentTrackIndex: number;
 }
 
 export interface AudioConfig {

@@ -16,6 +16,7 @@ import {
   setError,
   loadPlaylist,
 } from '@/store/slices/audioSlice';
+import { useAudioPlayer } from './useAudioPlayer';
 
 // Audio context
 const AudioContext = createContext<AudioContextValue | undefined>(undefined);
@@ -32,6 +33,9 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
   const state = useAppSelector((state) => state.audio);
 
+  // Initialize audio player (handles actual audio playback)
+  useAudioPlayer();
+
   // Load music from API
   const loadMusic = useCallback(async () => {
     try {
@@ -44,8 +48,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
 
       const tracks: Track[] = await response.json();
       dispatch(loadPlaylist(tracks));
-    } catch (error) {
-      console.error('Error loading music:', error);
+    } catch {
       dispatch(setError(true));
     } finally {
       dispatch(setLoading(false));
