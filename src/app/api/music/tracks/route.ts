@@ -4,14 +4,10 @@ import path from 'path';
 
 interface Track {
   id: string;
-  filename: string;
   title: string;
   artist?: string;
-  src: string;
-}
-
-interface TracksResponse {
-  tracks: Track[];
+  url: string;
+  duration: number;
 }
 
 // Supported audio file extensions
@@ -54,7 +50,7 @@ function generateTrackId(filename: string): string {
 
 export async function GET(
   request: NextRequest
-): Promise<NextResponse<TracksResponse | { error: string }>> {
+): Promise<NextResponse<Track[] | { error: string }>> {
   try {
     const musicFolderPath = path.join(process.cwd(), 'data', 'musics');
 
@@ -84,14 +80,14 @@ export async function GET(
 
       return {
         id,
-        filename,
         title,
         artist,
-        src: `/data/musics/${encodeURIComponent(filename)}`,
+        url: `/api/music/serve/${encodeURIComponent(filename)}`,
+        duration: 0, // We'll set this to 0 for now, could be enhanced to read actual duration
       };
     });
 
-    return NextResponse.json({ tracks });
+    return NextResponse.json(tracks);
   } catch (error) {
     console.error('Error reading music files:', error);
     return NextResponse.json(

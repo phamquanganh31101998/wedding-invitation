@@ -12,7 +12,9 @@ expect.extend(toHaveNoViolations);
 
 // Mock PlaylistService
 jest.mock('@/utils/music/PlaylistService');
-const mockPlaylistService = PlaylistService as jest.Mocked<typeof PlaylistService>;
+const mockPlaylistService = PlaylistService as jest.Mocked<
+  typeof PlaylistService
+>;
 
 // Mock HTML5 Audio API
 class MockAudio {
@@ -34,13 +36,15 @@ class MockAudio {
 
   removeEventListener(event: string, listener: EventListener) {
     if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter(
+        (l) => l !== listener
+      );
     }
   }
 
   dispatchEvent(event: Event) {
     const eventListeners = this.listeners[event.type] || [];
-    eventListeners.forEach(listener => listener(event));
+    eventListeners.forEach((listener) => listener(event));
     return true;
   }
 
@@ -260,7 +264,9 @@ describe('Music Player Accessibility', () => {
 
       const description = screen.getByText(/Currently loaded: Song 1/);
       expect(description).toBeInTheDocument();
-      expect(description).toHaveTextContent('Currently loaded: Song 1. Playlist has 2 tracks. Use space or enter to toggle playback.');
+      expect(description).toHaveTextContent(
+        'Currently loaded: Song 1. Playlist has 2 tracks. Use space or enter to toggle playback.'
+      );
     });
 
     it('should provide role and button semantics', async () => {
@@ -296,7 +302,7 @@ describe('Music Player Accessibility', () => {
       // Mock prefers-reduced-motion
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(query => ({
+        value: jest.fn().mockImplementation((query) => ({
           matches: query === '(prefers-reduced-motion: reduce)',
           media: query,
           onchange: null,

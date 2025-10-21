@@ -8,7 +8,9 @@ import { Track } from '@/types/music';
 
 // Mock PlaylistService
 jest.mock('@/utils/music/PlaylistService');
-const mockPlaylistService = PlaylistService as jest.Mocked<typeof PlaylistService>;
+const mockPlaylistService = PlaylistService as jest.Mocked<
+  typeof PlaylistService
+>;
 
 // Mock HTML5 Audio API
 class MockAudio {
@@ -30,13 +32,15 @@ class MockAudio {
 
   removeEventListener(event: string, listener: EventListener) {
     if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter(
+        (l) => l !== listener
+      );
     }
   }
 
   dispatchEvent(event: Event) {
     const eventListeners = this.listeners[event.type] || [];
-    eventListeners.forEach(listener => listener(event));
+    eventListeners.forEach((listener) => listener(event));
     return true;
   }
 
@@ -191,7 +195,7 @@ describe('Music Player Responsive Design', () => {
       // Mock prefers-reduced-motion: reduce
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(query => ({
+        value: jest.fn().mockImplementation((query) => ({
           matches: query === '(prefers-reduced-motion: reduce)',
           media: query,
           onchange: null,
@@ -217,7 +221,7 @@ describe('Music Player Responsive Design', () => {
       // Mock prefers-color-scheme: dark
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
-        value: jest.fn().mockImplementation(query => ({
+        value: jest.fn().mockImplementation((query) => ({
           matches: query === '(prefers-color-scheme: dark)',
           media: query,
           onchange: null,
@@ -391,7 +395,9 @@ describe('Browser Compatibility', () => {
       await screen.findByRole('button');
 
       // Should attempt to load preferences
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('musicPlayerPreferences');
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+        'musicPlayerPreferences'
+      );
     });
 
     it('should gracefully handle localStorage unavailability', async () => {

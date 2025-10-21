@@ -23,13 +23,15 @@ class MockAudio {
 
   removeEventListener(event: string, listener: EventListener) {
     if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter(
+        (l) => l !== listener
+      );
     }
   }
 
   dispatchEvent(event: Event) {
     const eventListeners = this.listeners[event.type] || [];
-    eventListeners.forEach(listener => listener(event));
+    eventListeners.forEach((listener) => listener(event));
     return true;
   }
 

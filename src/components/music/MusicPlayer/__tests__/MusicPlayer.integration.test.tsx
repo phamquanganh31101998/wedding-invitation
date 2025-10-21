@@ -8,7 +8,9 @@ import { Track } from '@/types/music';
 
 // Mock PlaylistService
 jest.mock('@/utils/music/PlaylistService');
-const mockPlaylistService = PlaylistService as jest.Mocked<typeof PlaylistService>;
+const mockPlaylistService = PlaylistService as jest.Mocked<
+  typeof PlaylistService
+>;
 
 // Mock HTML5 Audio API
 class MockAudio {
@@ -30,13 +32,15 @@ class MockAudio {
 
   removeEventListener(event: string, listener: EventListener) {
     if (this.listeners[event]) {
-      this.listeners[event] = this.listeners[event].filter(l => l !== listener);
+      this.listeners[event] = this.listeners[event].filter(
+        (l) => l !== listener
+      );
     }
   }
 
   dispatchEvent(event: Event) {
     const eventListeners = this.listeners[event.type] || [];
-    eventListeners.forEach(listener => listener(event));
+    eventListeners.forEach((listener) => listener(event));
     return true;
   }
 
@@ -188,7 +192,9 @@ describe('Music Player Integration', () => {
     });
 
     // Verify localStorage is called for loading preferences
-    expect(mockLocalStorage.getItem).toHaveBeenCalledWith('musicPlayerPreferences');
+    expect(mockLocalStorage.getItem).toHaveBeenCalledWith(
+      'musicPlayerPreferences'
+    );
   });
 
   it('should handle empty playlist gracefully', async () => {

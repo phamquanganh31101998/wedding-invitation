@@ -4,22 +4,19 @@
 
 export interface Track {
   id: string;
-  filename: string;
   title: string;
   artist?: string;
-  src: string;
+  url: string;
+  duration: number;
 }
 
+// Simplified audio state to match Redux slice
 export interface AudioState {
   isPlaying: boolean;
   isLoading: boolean;
   hasError: boolean;
-  volume: number;
-  currentTime: number;
-  duration: number;
-  currentTrack: Track | null;
   playlist: Track[];
-  currentTrackIndex: number;
+  currentTrack: Track | null;
 }
 
 export interface AudioConfig {
@@ -43,24 +40,13 @@ export interface AudioPreferences {
   shuffledPlaylist: string[];
 }
 
+// Simplified audio context value to match our implementation
 export interface AudioContextValue {
   state: AudioState;
   controls: {
     play: () => void;
     pause: () => void;
-    next: () => void;
-    previous: () => void;
-    setVolume: (volume: number) => void;
-    seek: (time: number) => void;
-    shufflePlaylist: () => void;
-    restorePlaybackState: () => void;
-    // Internal functions for hooks
-    setLoading: (loading: boolean) => void;
-    setError: (error: boolean) => void;
-    setCurrentTime: (time: number) => void;
-    setDuration: (duration: number) => void;
-    setPlaylist: (playlist: Track[]) => void;
-    setCurrentTrackIndex: (index: number) => void;
+    loadMusic: () => Promise<void>;
   };
 }
 
