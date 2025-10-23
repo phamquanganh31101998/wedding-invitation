@@ -72,7 +72,7 @@ class MockAudio {
 }
 
 // Mock the Audio constructor
-global.Audio = MockAudio as any;
+global.Audio = MockAudio as typeof Audio;
 
 // Mock usePlaylist hook
 jest.mock('../usePlaylist', () => ({
@@ -100,9 +100,11 @@ jest.mock('../useTabVisibility', () => ({
 
 // Create wrapper component with AudioProvider
 const createWrapper = () => {
-  return ({ children }: { children: ReactNode }) => (
+  const TestWrapper = ({ children }: { children: ReactNode }) => (
     <AudioProvider>{children}</AudioProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe('useAudioPlayer', () => {

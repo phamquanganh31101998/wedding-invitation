@@ -49,7 +49,7 @@ function generateTrackId(filename: string): string {
 }
 
 export async function GET(
-  request: NextRequest
+  _request: NextRequest
 ): Promise<NextResponse<Track[] | { error: string }>> {
   try {
     const musicFolderPath = path.join(process.cwd(), 'data', 'musics');

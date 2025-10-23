@@ -1,7 +1,6 @@
 import { writeRSVPData, readRSVPData } from '../csv';
 import { RSVPData } from '@/types';
 import fs from 'fs/promises';
-import path from 'path';
 
 // Mock fs/promises
 jest.mock('fs/promises');

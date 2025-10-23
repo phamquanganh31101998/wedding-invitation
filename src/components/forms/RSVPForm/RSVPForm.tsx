@@ -125,14 +125,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
         validateOnChange
         onSubmit={handleSubmit}
       >
-        {({
-          values,
-          errors,
-          touched,
-          setFieldValue,
-          isSubmitting,
-          isValid,
-        }) => (
+        {({ values, errors, setFieldValue, isSubmitting, isValid }) => (
           <Form>
             <VStack spacing={{ base: 4, sm: 6 }} align="stretch">
               {/* Form Error Display */}
