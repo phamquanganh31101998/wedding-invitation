@@ -1,6 +1,7 @@
 'use client';
 
 import Layout from '@/components/layout/Layout';
+import { FloatingMusicButton } from '@/components/music/MusicPlayer';
 import CountdownSection from '@/components/section/CountdownSection';
 import RSVPSection from '@/components/section/RSVPSection';
 import { VStack, Text, Button, Box } from '@chakra-ui/react';
@@ -50,6 +51,8 @@ export default function Home() {
         <CountdownSection targetDate={TARGET_DATE} />
 
         <RSVPSection />
+
+        <FloatingMusicButton />
       </VStack>
     </Layout>
   );

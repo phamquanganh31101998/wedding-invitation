@@ -2,10 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ChakraProviders } from '@/components/providers/ChakraProviders';
 import { ReduxProvider } from '@/components/providers/ReduxProvider';
-import {
-  AudioProvider,
-  FloatingMusicButton,
-} from '@/components/music/MusicPlayer';
+import { AudioProvider } from '@/components/music/MusicPlayer';
 import './globals.css';
 
 const geistSans = Geist({
@@ -35,10 +32,7 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <ChakraProviders>
-            <AudioProvider>
-              {children}
-              <FloatingMusicButton />
-            </AudioProvider>
+            <AudioProvider>{children}</AudioProvider>
           </ChakraProviders>
         </ReduxProvider>
       </body>

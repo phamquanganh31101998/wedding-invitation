@@ -40,11 +40,12 @@ const audioSlice = createSlice({
         state.currentTrackIndex = randomIndex;
         state.currentTrack = action.payload[randomIndex];
         state.hasError = false;
-        // Auto play when playlist loads successfully
-        state.isPlaying = true;
+        // Do not auto-play - wait for user interaction
+        state.isPlaying = false;
       } else {
         state.currentTrackIndex = -1;
         state.currentTrack = null;
+        state.isPlaying = false;
       }
     },
     nextTrack: (state) => {

@@ -39,14 +39,11 @@ describe('audioSlice - Simplified', () => {
   });
 
   it('should handle play action', () => {
-    // First load a playlist (which auto-plays)
+    // First load a playlist (no auto-play)
     store.dispatch(loadPlaylist(mockTracks));
-
-    // Pause it first
-    store.dispatch(pause());
     expect(store.getState().audio.isPlaying).toBe(false);
 
-    // Then play again
+    // Then play
     store.dispatch(play());
 
     const state = store.getState().audio;
@@ -62,7 +59,8 @@ describe('audioSlice - Simplified', () => {
   });
 
   it('should handle pause action', () => {
-    store.dispatch(loadPlaylist(mockTracks)); // Auto-plays
+    store.dispatch(loadPlaylist(mockTracks)); // No auto-play
+    store.dispatch(play()); // Start playing
     store.dispatch(pause());
 
     const state = store.getState().audio;
@@ -78,7 +76,8 @@ describe('audioSlice - Simplified', () => {
   });
 
   it('should handle setError', () => {
-    store.dispatch(loadPlaylist(mockTracks)); // Auto-plays
+    store.dispatch(loadPlaylist(mockTracks)); // No auto-play
+    store.dispatch(play()); // Start playing
 
     store.dispatch(setError(true));
 
@@ -88,7 +87,7 @@ describe('audioSlice - Simplified', () => {
     expect(state.isPlaying).toBe(false);
   });
 
-  it('should handle loadPlaylist and auto-play with random track selection', () => {
+  it('should handle loadPlaylist with random track selection (no auto-play)', () => {
     store.dispatch(loadPlaylist(mockTracks));
 
     const state = store.getState().audio;
@@ -100,7 +99,7 @@ describe('audioSlice - Simplified', () => {
     expect(state.currentTrack).toEqual(mockTracks[state.currentTrackIndex]);
 
     expect(state.hasError).toBe(false);
-    expect(state.isPlaying).toBe(true); // Auto-play when playlist loads
+    expect(state.isPlaying).toBe(false); // No auto-play - wait for user interaction
   });
 
   it('should handle empty playlist', () => {
@@ -198,5 +197,20 @@ describe('audioSlice - Simplified', () => {
     // Should have some variety in selections
     const uniqueIndices = new Set(selectedIndices);
     expect(uniqueIndices.size).toBeGreaterThan(1);
+  });
+
+  it('should require user interaction to start playing', () => {
+    // Load playlist
+    store.dispatch(loadPlaylist(mockTracks));
+
+    // Should not be playing initially
+    expect(store.getState().audio.isPlaying).toBe(false);
+    expect(store.getState().audio.currentTrack).not.toBe(null);
+
+    // User clicks play button
+    store.dispatch(play());
+
+    // Now should be playing
+    expect(store.getState().audio.isPlaying).toBe(true);
   });
 });

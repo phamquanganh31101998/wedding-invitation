@@ -188,8 +188,14 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
       <Box
         position="fixed"
         bottom={{ base: 4, sm: 5, md: 6, lg: 8 }}
-        left={{ base: 4, sm: 5, md: 6, lg: 8 }}
         zIndex="overlay"
+        // Position at bottom right following page layout constraints
+        right={{
+          base: 4, // Mobile: 16px from right edge (full width layout)
+          sm: 'calc(50vw - 210px + 24px)', // Tablet+: align with right edge of 420px centered container
+        }}
+        // Prevent overflow on very small screens
+        maxW="calc(100vw - 32px)"
       >
         <IconButton
           aria-label={getAriaLabel()}
