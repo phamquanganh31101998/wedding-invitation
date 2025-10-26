@@ -1,7 +1,7 @@
 'use client';
 
 import { Box, Flex, Container } from '@chakra-ui/react';
-import Header from './Header';
+// import Header from './Header';
 import Footer from './Footer';
 
 interface LayoutProps {
@@ -11,7 +11,7 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   return (
     <Flex direction="column" minH="100vh" bg="white">
-      <Header />
+      {/* <Header /> */}
       <Box flex="1" as="main">
         <Container
           maxW={{

@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeRSVPData, readRSVPData } from '@/utils/csv';
+import {
+  writeRSVPData,
+  readRSVPData,
+  getNextRSVPId,
+  findRSVPById,
+  updateRSVPData,
+} from '@/utils/csv';
 import { RSVPData } from '@/types';
 import * as yup from 'yup';
 
@@ -8,6 +14,8 @@ import { rsvpValidationSchema } from './validation';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const { searchParams } = new URL(request.url);
+    const guestId = searchParams.get('id');
 
     // Validate request body using Yup
     const validatedData = await rsvpValidationSchema.validate(body, {
@@ -15,20 +23,64 @@ export async function POST(request: NextRequest) {
       stripUnknown: true, // Remove unknown fields
     });
 
-    const rsvpData: RSVPData = {
-      id: Date.now().toString(),
-      name: validatedData.name,
-      relationship: validatedData.relationship,
-      attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
-      message: validatedData.message || '',
-      submittedAt: new Date().toISOString(),
-    };
+    let rsvpData: RSVPData;
+    let isUpdate = false;
 
-    await writeRSVPData(rsvpData);
+    if (guestId) {
+      // Check if guest exists
+      const existingGuest = await findRSVPById(guestId);
+
+      if (existingGuest) {
+        // Update existing record
+        rsvpData = {
+          ...existingGuest,
+          name: validatedData.name,
+          relationship: validatedData.relationship,
+          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+          message: validatedData.message || '',
+          submittedAt: new Date().toISOString(),
+        };
+
+        await updateRSVPData(rsvpData);
+        isUpdate = true;
+      } else {
+        const nextId = await getNextRSVPId();
+        // Create new record with specified ID
+        rsvpData = {
+          id: nextId,
+          name: validatedData.name,
+          relationship: validatedData.relationship,
+          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+          message: validatedData.message || '',
+          submittedAt: new Date().toISOString(),
+        };
+
+        await writeRSVPData(rsvpData);
+      }
+    } else {
+      // Create new record with auto-generated ID
+      const nextId = await getNextRSVPId();
+
+      rsvpData = {
+        id: nextId,
+        name: validatedData.name,
+        relationship: validatedData.relationship,
+        attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+        message: validatedData.message || '',
+        submittedAt: new Date().toISOString(),
+      };
+
+      await writeRSVPData(rsvpData);
+    }
 
     return NextResponse.json(
-      { message: 'RSVP submitted successfully', data: rsvpData },
-      { status: 201 }
+      {
+        message: isUpdate
+          ? 'RSVP updated successfully'
+          : 'RSVP submitted successfully',
+        data: rsvpData,
+      },
+      { status: isUpdate ? 200 : 201 }
     );
   } catch (error) {
     console.error('Error submitting RSVP:', error);

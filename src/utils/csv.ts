@@ -101,6 +101,99 @@ export async function writeRSVPData(data: RSVPData): Promise<void> {
   }
 }
 
+export async function getNextRSVPId(): Promise<string> {
+  try {
+    const existingData = await readRSVPData();
+
+    if (existingData.length === 0) {
+      return '1';
+    }
+
+    // Find the highest numeric ID
+    const maxId = existingData.reduce((max, record) => {
+      const numericId = parseInt(record.id, 10);
+      return isNaN(numericId) ? max : Math.max(max, numericId);
+    }, 0);
+
+    return (maxId + 1).toString();
+  } catch (error) {
+    console.error('Error getting next RSVP ID:', error);
+    // Fallback to timestamp-based ID if CSV reading fails
+    return Date.now().toString();
+  }
+}
+
+export async function findRSVPById(id: string): Promise<RSVPData | null> {
+  try {
+    const existingData = await readRSVPData();
+    return existingData.find((record) => record.id === id) || null;
+  } catch (error) {
+    console.error('Error finding RSVP by ID:', error);
+    return null;
+  }
+}
+
+export async function updateRSVPData(data: RSVPData): Promise<void> {
+  try {
+    const existingData = await readRSVPData();
+    const recordIndex = existingData.findIndex(
+      (record) => record.id === data.id
+    );
+
+    if (recordIndex === -1) {
+      throw new Error(`RSVP record with ID ${data.id} not found`);
+    }
+
+    // Update the existing record
+    existingData[recordIndex] = data;
+
+    // Rewrite the entire CSV file
+    await rewriteCSVFile(existingData);
+  } catch (error) {
+    console.error('Error updating RSVP data:', error);
+    throw new Error(
+      `Failed to update RSVP data: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+async function rewriteCSVFile(data: RSVPData[]): Promise<void> {
+  try {
+    // Ensure data directory exists
+    const dataDir = path.dirname(CSV_FILE_PATH);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // Create a new CSV writer that overwrites the file
+    const csvWriterOverwrite = createCsvWriter.createObjectCsvWriter({
+      path: CSV_FILE_PATH,
+      header: [
+        { id: 'id', title: 'ID' },
+        { id: 'name', title: 'Name' },
+        { id: 'relationship', title: 'Relationship' },
+        { id: 'attendance', title: 'Attendance' },
+        { id: 'message', title: 'Message' },
+        { id: 'submittedAt', title: 'Submitted At' },
+      ],
+      append: false, // Overwrite the file
+    });
+
+    // Sanitize all data for CSV writing
+    const sanitizedData = data.map((record) => ({
+      ...record,
+      name: record.name.replace(/"/g, '""'),
+      relationship: record.relationship.replace(/"/g, '""'),
+      message: record.message ? record.message.replace(/"/g, '""') : '',
+    }));
+
+    await csvWriterOverwrite.writeRecords(sanitizedData);
+  } catch (error) {
+    console.error('Error rewriting CSV file:', error);
+    throw error;
+  }
+}
+
 export async function initializeCSV(): Promise<void> {
   const dataDir = path.dirname(CSV_FILE_PATH);
   if (!fs.existsSync(dataDir)) {

@@ -20,6 +20,8 @@ import PositionField from './RelationshipField';
 import AttendanceField from './AttendanceField';
 
 interface RSVPFormProps {
+  guestId?: string | null;
+  initialData?: RSVPData | null;
   onSuccess?: (data: RSVPData) => void;
   onError?: (error: string) => void;
 }
@@ -29,14 +31,18 @@ interface FormState {
   isSubmitted: boolean;
 }
 
-const initialValues: RSVPFormData = {
-  name: '',
-  relationship: '',
-  attendance: '',
-  message: '',
-};
-
-const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
+const RSVPForm: React.FC<RSVPFormProps> = ({
+  guestId,
+  initialData,
+  onSuccess,
+  onError,
+}) => {
+  const initialValues: RSVPFormData = {
+    name: initialData?.name || '',
+    relationship: initialData?.relationship || '',
+    attendance: (initialData?.attendance as 'yes' | 'no' | 'maybe' | '') || '',
+    message: initialData?.message || '',
+  };
   const [formState, setFormState] = useState<FormState>({
     submitError: null,
     isSubmitted: false,
@@ -52,7 +58,10 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
     setFormState((prev) => ({ ...prev, submitError: null }));
 
     try {
-      const response = await fetch('/api/rsvp', {
+      const url = guestId
+        ? `/api/rsvp?id=${encodeURIComponent(guestId)}`
+        : '/api/rsvp';
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,10 +82,14 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
         submitError: null,
       }));
 
+      const isUpdate = initialData !== null;
       toast({
-        title: 'RSVP Submitted Successfully!',
-        description:
-          'Thank you for your response. We look forward to celebrating with you!',
+        title: isUpdate
+          ? 'RSVP Updated Successfully!'
+          : 'RSVP Submitted Successfully!',
+        description: isUpdate
+          ? 'Your RSVP has been updated. Thank you!'
+          : 'Thank you for your response. We look forward to celebrating with you!',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -120,6 +133,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
   return (
     <Box maxW={{ base: '100%', sm: 'md' }} p={{ base: 4, sm: 6 }} w="full">
       <Formik
+        enableReinitialize
         initialValues={initialValues}
         validationSchema={validationSchema}
         validateOnChange={false}
