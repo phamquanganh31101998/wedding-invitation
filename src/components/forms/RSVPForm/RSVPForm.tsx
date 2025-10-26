@@ -122,7 +122,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({ onSuccess, onError }) => {
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
-        validateOnChange
+        validateOnChange={false}
         onSubmit={handleSubmit}
       >
         {({ values, errors, setFieldValue, isSubmitting, isValid }) => (

@@ -4,11 +4,9 @@ import * as Yup from 'yup';
 export const validationSchema = Yup.object({
   name: Yup.string()
     .required('Name is required')
-    .max(50, 'Name must be no more than 50 characters long')
-    .matches(
-      /^[a-zA-Z\s\-']+$/,
-      'Name can only contain letters, spaces, hyphens, and apostrophes'
-    ),
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name must be no more than 50 characters'),
   relationship: Yup.string()
     .required('Relationship is required')
     .min(1, 'Relationship must be at least 1 character long')

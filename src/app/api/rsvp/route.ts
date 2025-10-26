@@ -1,60 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeRSVPData, readRSVPData } from '@/utils/csv';
 import { RSVPData } from '@/types';
+import * as yup from 'yup';
+
+import { rsvpValidationSchema } from './validation';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Validate required fields
-    const validationErrors: string[] = [];
-
-    if (
-      !body.name ||
-      typeof body.name !== 'string' ||
-      body.name.trim().length === 0
-    ) {
-      validationErrors.push('Name is required');
-    } else if (body.name.length < 2 || body.name.length > 50) {
-      validationErrors.push('Name must be between 2 and 50 characters');
-    }
-
-    if (
-      !body.relationship ||
-      typeof body.relationship !== 'string' ||
-      body.relationship.trim().length === 0
-    ) {
-      validationErrors.push('Relationship is required');
-    } else if (body.relationship.length < 1 || body.relationship.length > 100) {
-      validationErrors.push(
-        'Relationship must be between 1 and 100 characters'
-      );
-    }
-
-    if (!body.attendance || !['yes', 'no', 'maybe'].includes(body.attendance)) {
-      validationErrors.push('Attendance must be one of: yes, no, maybe');
-    }
-
-    if (
-      body.message &&
-      (typeof body.message !== 'string' || body.message.length > 500)
-    ) {
-      validationErrors.push('Message must be no more than 500 characters');
-    }
-
-    if (validationErrors.length > 0) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
-        { status: 400 }
-      );
-    }
+    // Validate request body using Yup
+    const validatedData = await rsvpValidationSchema.validate(body, {
+      abortEarly: false, // Return all validation errors
+      stripUnknown: true, // Remove unknown fields
+    });
 
     const rsvpData: RSVPData = {
       id: Date.now().toString(),
-      name: body.name.trim(),
-      relationship: body.relationship.trim(),
-      attendance: body.attendance,
-      message: body.message ? body.message.trim() : '',
+      name: validatedData.name,
+      relationship: validatedData.relationship,
+      attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+      message: validatedData.message || '',
       submittedAt: new Date().toISOString(),
     };
 
@@ -66,6 +32,17 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error submitting RSVP:', error);
+
+    // Handle Yup validation errors
+    if (error instanceof yup.ValidationError) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.errors,
+        },
+        { status: 400 }
+      );
+    }
 
     // Handle specific CSV writing errors
     if (error instanceof Error) {
