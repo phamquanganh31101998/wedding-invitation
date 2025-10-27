@@ -84,9 +84,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
 
       const isUpdate = initialData !== null;
       toast({
-        title: isUpdate
-          ? 'Cập Nhật RSVP Thành Công!'
-          : 'Gửi RSVP Thành Công!',
+        title: isUpdate ? 'Cập Nhật RSVP Thành Công!' : 'Gửi RSVP Thành Công!',
         description: isUpdate
           ? 'RSVP của bạn đã được cập nhật. Cảm ơn bạn!'
           : 'Cảm ơn phản hồi của bạn. Chúng tôi mong được ăn mừng cùng bạn!',

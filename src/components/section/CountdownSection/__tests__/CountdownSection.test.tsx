@@ -31,8 +31,10 @@ describe('CountdownSection', () => {
     const futureDate = addDays(new Date(), 5);
     renderWithChakra(<CountdownSection targetDate={futureDate} />);
 
-    expect(screen.getByText('Countdown to Our Big Day')).toBeInTheDocument();
-    expect(screen.getByText('5 days to go!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Đếm Ngược Đến Ngày Trọng Đại')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Còn 5 ngày nữa!')).toBeInTheDocument();
   });
 
   it('should handle error states gracefully', () => {
@@ -46,8 +48,10 @@ describe('CountdownSection', () => {
     const invalidDate = new Date('invalid');
     renderWithChakra(<CountdownSection targetDate={invalidDate} />);
 
-    expect(screen.getByText('Countdown to Our Big Day')).toBeInTheDocument();
-    expect(screen.getByText('Wedding coming soon!')).toBeInTheDocument();
+    expect(
+      screen.getByText('Đếm Ngược Đến Ngày Trọng Đại')
+    ).toBeInTheDocument();
+    expect(screen.getByText('Đám cưới sắp diễn ra!')).toBeInTheDocument();
   });
 
   it('should pass targetDate to CountdownTimer', () => {

@@ -21,12 +21,10 @@ describe('RSVPSuccessAlert', () => {
       </ChakraWrapper>
     );
 
-    expect(
-      screen.getByText('RSVP Submitted Successfully!')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Gửi RSVP Thành Công!')).toBeInTheDocument();
     expect(
       screen.getByText(
-        'Thank you for your response. We look forward to celebrating with you!'
+        'Cảm ơn phản hồi của bạn. Chúng tôi mong được ăn mừng cùng bạn!'
       )
     ).toBeInTheDocument();
   });
@@ -39,7 +37,7 @@ describe('RSVPSuccessAlert', () => {
     );
 
     expect(
-      screen.getByRole('button', { name: 'Submit Another RSVP' })
+      screen.getByRole('button', { name: 'Gửi RSVP Khác' })
     ).toBeInTheDocument();
   });
 
@@ -51,7 +49,7 @@ describe('RSVPSuccessAlert', () => {
     );
 
     const resetButton = screen.getByRole('button', {
-      name: 'Submit Another RSVP',
+      name: 'Gửi RSVP Khác',
     });
     fireEvent.click(resetButton);
 

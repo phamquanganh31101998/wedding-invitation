@@ -16,8 +16,9 @@ export default function CountingTimer({
   className,
 }: CountingTimerProps) {
   const countdownText = `Còn ${days} ${days === 1 ? 'ngày' : 'ngày'} nữa!`;
-  const screenReaderText = `Còn ${days} ${days === 1 ? 'ngày' : 'ngày'
-    } nữa cho đến đám cưới`;
+  const screenReaderText = `Còn ${days} ${
+    days === 1 ? 'ngày' : 'ngày'
+  } nữa cho đến đám cưới`;
 
   return (
     <Box

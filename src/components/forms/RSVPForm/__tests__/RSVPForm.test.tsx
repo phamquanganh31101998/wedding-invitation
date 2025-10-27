@@ -20,9 +20,9 @@ describe('RSVPForm', () => {
   });
 
   const fillValidForm = async () => {
-    const nameInput = screen.getByPlaceholderText('Enter your full name');
+    const nameInput = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
     const relationshipInput = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
 
     fireEvent.change(nameInput, {
@@ -34,7 +34,7 @@ describe('RSVPForm', () => {
     fireEvent.click(screen.getByDisplayValue('yes'));
 
     await waitFor(() => {
-      const submitButton = screen.getByRole('button', { name: 'Submit RSVP' });
+      const submitButton = screen.getByRole('button', { name: 'Gửi RSVP' });
       expect(submitButton).not.toBeDisabled();
     });
   };
@@ -47,19 +47,19 @@ describe('RSVPForm', () => {
     );
 
     expect(
-      screen.getByPlaceholderText('Enter your full name')
+      screen.getByPlaceholderText('Nhập họ và tên đầy đủ')
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('e.g., Friend, Family, Colleague...')
+      screen.getByPlaceholderText('ví dụ: Bạn bè, Gia đình, Đồng nghiệp...')
     ).toBeInTheDocument();
-    expect(screen.getByText('Will you be attending?')).toBeInTheDocument();
+    expect(screen.getByText('Bạn có tham dự không?')).toBeInTheDocument();
     expect(
       screen.getByPlaceholderText(
-        'Share your excitement or well-wishes with the couple...'
+        'Chia sẻ niềm vui hoặc lời chúc tốt đẹp với cô dâu chú rể...'
       )
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Submit RSVP' })
+      screen.getByRole('button', { name: 'Gửi RSVP' })
     ).toBeInTheDocument();
   });
 
@@ -70,8 +70,8 @@ describe('RSVPForm', () => {
       </ChakraWrapper>
     );
 
-    const submitButton = screen.getByRole('button', { name: 'Submit RSVP' });
-    const nameInput = screen.getByPlaceholderText('Enter your full name');
+    const submitButton = screen.getByRole('button', { name: 'Gửi RSVP' });
+    const nameInput = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
 
     // Interact with form to trigger validation
     fireEvent.focus(nameInput);
@@ -118,12 +118,12 @@ describe('RSVPForm', () => {
     );
 
     // Fill out the form
-    const nameInput = screen.getByPlaceholderText('Enter your full name');
+    const nameInput = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
     const relationshipInput = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
     const messageInput = screen.getByPlaceholderText(
-      'Share your excitement or well-wishes with the couple...'
+      'Chia sẻ niềm vui hoặc lời chúc tốt đẹp với cô dâu chú rể...'
     );
 
     fireEvent.change(nameInput, {
@@ -138,11 +138,11 @@ describe('RSVPForm', () => {
     });
 
     await waitFor(() => {
-      const submitButton = screen.getByRole('button', { name: 'Submit RSVP' });
+      const submitButton = screen.getByRole('button', { name: 'Gửi RSVP' });
       expect(submitButton).not.toBeDisabled();
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP' }));
 
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/rsvp', {
@@ -184,7 +184,7 @@ describe('RSVPForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
 
     await waitFor(() => {
-      expect(mockOnError).toHaveBeenCalledWith('Validation failed');
+      expect(mockOnError).toHaveBeenCalledWith('Xác thực thất bại');
     });
   });
 
@@ -198,7 +198,7 @@ describe('RSVPForm', () => {
     );
 
     await fillValidForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP' }));
 
     await waitFor(() => {
       expect(mockOnError).toHaveBeenCalledWith('Network error');
@@ -230,15 +230,15 @@ describe('RSVPForm', () => {
     );
 
     await fillValidForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP' }));
 
     await waitFor(() => {
       expect(
-        screen.getAllByText('RSVP Submitted Successfully!')[0]
+        screen.getAllByText('Gửi RSVP Thành Công!')[0]
       ).toBeInTheDocument();
       expect(
         screen.getAllByText(
-          'Thank you for your response. We look forward to celebrating with you!'
+          'Cảm ơn phản hồi của bạn. Chúng tôi mong được ăn mừng cùng bạn!'
         )[0]
       ).toBeInTheDocument();
     });
@@ -269,24 +269,24 @@ describe('RSVPForm', () => {
     );
 
     await fillValidForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP' }));
 
     await waitFor(() => {
       expect(
-        screen.getAllByText('RSVP Submitted Successfully!')[0]
+        screen.getAllByText('Gửi RSVP Thành Công!')[0]
       ).toBeInTheDocument();
     });
 
     // Click "Submit Another RSVP"
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Submit Another RSVP' })
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP Khác' }));
 
     // Form should be reset and visible again
     expect(
-      screen.getByPlaceholderText('Enter your full name')
+      screen.getByPlaceholderText('Nhập họ và tên đầy đủ')
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your full name')).toHaveValue('');
+    expect(screen.getByPlaceholderText('Nhập họ và tên đầy đủ')).toHaveValue(
+      ''
+    );
   });
 
   it('should show loading state during submission', async () => {
@@ -318,14 +318,14 @@ describe('RSVPForm', () => {
     );
 
     await fillValidForm();
-    fireEvent.click(screen.getByRole('button', { name: 'Submit RSVP' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Gửi RSVP' }));
 
     // Should show loading text
-    expect(screen.getByText('Submitting RSVP...')).toBeInTheDocument();
+    expect(screen.getByText('Đang gửi RSVP...')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(
-        screen.getAllByText('RSVP Submitted Successfully!')[0]
+        screen.getAllByText('Gửi RSVP Thành Công!')[0]
       ).toBeInTheDocument();
     });
   });

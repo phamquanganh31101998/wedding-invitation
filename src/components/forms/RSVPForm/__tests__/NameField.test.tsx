@@ -21,9 +21,9 @@ describe('NameField', () => {
       </ChakraWrapper>
     );
 
-    expect(screen.getByText('Full Name')).toBeInTheDocument();
+    expect(screen.getByText('Họ và Tên')).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('Enter your full name')
+      screen.getByPlaceholderText('Nhập họ và tên đầy đủ')
     ).toBeInTheDocument();
   });
 
@@ -35,7 +35,7 @@ describe('NameField', () => {
     );
 
     expect(
-      screen.getByText("Enter your full name as you'd like it to appear")
+      screen.getByText('Nhập họ và tên đầy đủ như bạn muốn hiển thị')
     ).toBeInTheDocument();
   });
 
@@ -46,7 +46,7 @@ describe('NameField', () => {
       </ChakraWrapper>
     );
 
-    const input = screen.getByPlaceholderText('Enter your full name');
+    const input = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
     fireEvent.change(input, { target: { value: 'John Doe' } });
 
     expect(mockOnChange).toHaveBeenCalledWith('John Doe');
@@ -69,7 +69,7 @@ describe('NameField', () => {
       </ChakraWrapper>
     );
 
-    const input = screen.getByPlaceholderText('Enter your full name');
+    const input = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
     expect(input).toHaveAttribute('aria-required', 'true');
   });
 
@@ -90,7 +90,7 @@ describe('NameField', () => {
       </ChakraWrapper>
     );
 
-    const input = screen.getByPlaceholderText('Enter your full name');
+    const input = screen.getByPlaceholderText('Nhập họ và tên đầy đủ');
     expect(input).toBeDisabled();
   });
 });

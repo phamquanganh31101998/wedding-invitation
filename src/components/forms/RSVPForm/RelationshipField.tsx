@@ -70,8 +70,8 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
       setFilteredSuggestions(
         value.trim()
           ? COMMON_RELATIONSHIPS.filter((relationship) =>
-            relationship.toLowerCase().includes(value.toLowerCase())
-          )
+              relationship.toLowerCase().includes(value.toLowerCase())
+            )
           : COMMON_RELATIONSHIPS
       );
       onOpen();
@@ -165,7 +165,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           </FormErrorMessage>
         ) : (
           <FormHelperText id="position-helper" textAlign="left">
-            Bạn quen biết cô dâu chú rể như thế nào? Bạn có thể chọn từ gợi ý hoặc tự nhập.
+            Bạn quen biết cô dâu chú rể như thế nào?
           </FormHelperText>
         )}
       </FormControl>

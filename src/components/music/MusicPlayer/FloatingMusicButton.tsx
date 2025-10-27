@@ -315,26 +315,26 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
             },
             // Combined high contrast and reduced motion
             '@media (prefers-contrast: high) and (prefers-reduced-motion: reduce)':
-            {
-              bg: highContrastBgColor,
-              color: highContrastTextColor,
-              border: `2px solid ${highContrastBorderColor}`,
-              transition: 'none',
-              _hover: {
+              {
                 bg: highContrastBgColor,
                 color: highContrastTextColor,
-                transform: 'none',
-                boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
+                border: `2px solid ${highContrastBorderColor}`,
+                transition: 'none',
+                _hover: {
+                  bg: highContrastBgColor,
+                  color: highContrastTextColor,
+                  transform: 'none',
+                  boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
+                },
+                _active: {
+                  transform: 'none',
+                },
+                _focus: {
+                  boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
+                  outline: `2px solid ${highContrastFocusColor}`,
+                  outlineOffset: '2px',
+                },
               },
-              _active: {
-                transform: 'none',
-              },
-              _focus: {
-                boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
-                outline: `2px solid ${highContrastFocusColor}`,
-                outlineOffset: '2px',
-              },
-            },
           }}
         />
 

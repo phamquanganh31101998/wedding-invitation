@@ -22,10 +22,10 @@ describe('PositionField', () => {
     );
 
     expect(
-      screen.getByText('Your Relationship with the Couple')
+      screen.getByText('Mối Quan Hệ Với Cô Dâu Chú Rể')
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText('e.g., Friend, Family, Colleague...')
+      screen.getByPlaceholderText('ví dụ: Bạn bè, Gia đình, Đồng nghiệp...')
     ).toBeInTheDocument();
   });
 
@@ -38,7 +38,7 @@ describe('PositionField', () => {
 
     expect(
       screen.getByText(
-        'How do you know the couple? You can select from suggestions or type your own.'
+        'Bạn quen biết cô dâu chú rể như thế nào? Bạn có thể chọn từ gợi ý hoặc tự nhập.'
       )
     ).toBeInTheDocument();
   });
@@ -51,11 +51,11 @@ describe('PositionField', () => {
     );
 
     const input = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
-    fireEvent.change(input, { target: { value: 'Friend' } });
+    fireEvent.change(input, { target: { value: 'Bạn bè' } });
 
-    expect(mockOnChange).toHaveBeenCalledWith('Friend');
+    expect(mockOnChange).toHaveBeenCalledWith('Bạn bè');
   });
 
   it('should show suggestions dropdown on focus', async () => {
@@ -66,14 +66,14 @@ describe('PositionField', () => {
     );
 
     const input = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
     fireEvent.focus(input);
 
     await waitFor(() => {
-      expect(screen.getByText('Friend')).toBeInTheDocument();
-      expect(screen.getByText('Family')).toBeInTheDocument();
-      expect(screen.getByText('Colleague')).toBeInTheDocument();
+      expect(screen.getByText('Bạn bè')).toBeInTheDocument();
+      expect(screen.getByText('Gia đình')).toBeInTheDocument();
+      expect(screen.getByText('Đồng nghiệp')).toBeInTheDocument();
     });
   });
 
@@ -85,15 +85,13 @@ describe('PositionField', () => {
     );
 
     const input = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
-    fireEvent.change(input, { target: { value: 'fri' } });
+    fireEvent.change(input, { target: { value: 'bạn' } });
 
     await waitFor(() => {
-      expect(screen.getByText('Friend')).toBeInTheDocument();
-      expect(screen.getByText('College Friend')).toBeInTheDocument();
-      expect(screen.getByText('Work Friend')).toBeInTheDocument();
-      expect(screen.queryByText('Family')).not.toBeInTheDocument();
+      expect(screen.getByText('Bạn bè')).toBeInTheDocument();
+      expect(screen.queryByText('Gia đình')).not.toBeInTheDocument();
     });
   });
 
@@ -105,16 +103,16 @@ describe('PositionField', () => {
     );
 
     const input = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
     fireEvent.focus(input);
 
     await waitFor(() => {
-      const friendOption = screen.getByText('Friend');
+      const friendOption = screen.getByText('Bạn bè');
       fireEvent.click(friendOption);
     });
 
-    expect(mockOnChange).toHaveBeenCalledWith('Friend');
+    expect(mockOnChange).toHaveBeenCalledWith('Bạn bè');
   });
 
   it('should display error message when provided', () => {
@@ -135,7 +133,7 @@ describe('PositionField', () => {
     );
 
     const input = screen.getByPlaceholderText(
-      'e.g., Friend, Family, Colleague...'
+      'ví dụ: Bạn bè, Gia đình, Đồng nghiệp...'
     );
     expect(input).toBeDisabled();
   });

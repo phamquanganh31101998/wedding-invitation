@@ -21,7 +21,7 @@ describe('AttendanceField', () => {
       </ChakraWrapper>
     );
 
-    expect(screen.getByText('Will you be attending?')).toBeInTheDocument();
+    expect(screen.getByText('Bạn có tham dự không?')).toBeInTheDocument();
   });
 
   it('should render all attendance options', () => {

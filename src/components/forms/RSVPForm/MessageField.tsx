@@ -35,7 +35,9 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
 
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired}>
-        <FormLabel htmlFor="message-field">Lời Nhắn Gửi Cô Dâu Chú Rể</FormLabel>
+        <FormLabel htmlFor="message-field">
+          Lời Nhắn Gửi Cô Dâu Chú Rể
+        </FormLabel>
         <Textarea
           ref={ref}
           id="message-field"
@@ -63,7 +65,8 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
               </FormErrorMessage>
             ) : (
               <FormHelperText id="message-helper" mt={0} textAlign="left">
-                Chia sẻ suy nghĩ, lời chúc tốt đẹp hoặc niềm vui cho ngày trọng đại
+                Chia sẻ suy nghĩ, lời chúc tốt đẹp hoặc niềm vui cho ngày trọng
+                đại
               </FormHelperText>
             )}
           </div>

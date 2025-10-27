@@ -72,7 +72,8 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
           </FormErrorMessage>
         ) : (
           <FormHelperText id="attendance-helper" textAlign="left">
-            Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của chúng tôi không
+            Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của
+            chúng tôi không
           </FormHelperText>
         )}
       </FormControl>
