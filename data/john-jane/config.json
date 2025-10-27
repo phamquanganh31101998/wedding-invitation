@@ -1,0 +1,18 @@
+{
+  "id": "john-jane",
+  "brideName": "Jane Wilson",
+  "groomName": "John Anderson",
+  "weddingDate": "2025-11-15",
+  "venue": {
+    "name": "Sunset Gardens",
+    "address": "456 Garden Ave, Springfield, IL",
+    "mapLink": "https://maps.google.com/john-jane"
+  },
+  "theme": {
+    "primaryColor": "#E53E3E",
+    "secondaryColor": "#1A202C"
+  },
+  "isActive": true,
+  "createdAt": "2025-10-27T00:00:00Z",
+  "updatedAt": "2025-10-27T00:00:00Z"
+}

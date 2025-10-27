@@ -1,0 +1,18 @@
+{
+  "id": "smith-wedding",
+  "brideName": "Emily Smith",
+  "groomName": "Michael Johnson",
+  "weddingDate": "2025-09-20",
+  "venue": {
+    "name": "Oceanview Resort",
+    "address": "789 Beach Blvd, Miami, FL",
+    "mapLink": "https://maps.google.com/smith-wedding"
+  },
+  "theme": {
+    "primaryColor": "#3182CE",
+    "secondaryColor": "#2D3748"
+  },
+  "isActive": true,
+  "createdAt": "2025-10-27T00:00:00Z",
+  "updatedAt": "2025-10-27T00:00:00Z"
+}
