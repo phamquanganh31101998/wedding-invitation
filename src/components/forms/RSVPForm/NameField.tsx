@@ -26,7 +26,7 @@ const NameField = forwardRef<HTMLInputElement, NameFieldProps>(
 
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired}>
-        <FormLabel htmlFor="name-field">Full Name</FormLabel>
+        <FormLabel htmlFor="name-field">Họ tên</FormLabel>
         <Input
           ref={ref}
           id="name-field"
@@ -34,7 +34,7 @@ const NameField = forwardRef<HTMLInputElement, NameFieldProps>(
           type="text"
           value={value}
           onChange={handleChange}
-          placeholder="Enter your full name"
+          placeholder="Nhập họ và tên đầy đủ"
           isDisabled={isDisabled}
           aria-describedby={error ? 'name-error' : 'name-helper'}
           minH="44px" // Ensure 44px minimum touch target
@@ -46,7 +46,7 @@ const NameField = forwardRef<HTMLInputElement, NameFieldProps>(
           </FormErrorMessage>
         ) : (
           <FormHelperText id="name-helper" textAlign="left">
-            Enter your full name as you&apos;d like it to appear
+            Chúng mình muốn biết bạn là ai
           </FormHelperText>
         )}
       </FormControl>

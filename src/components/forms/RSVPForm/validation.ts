@@ -3,18 +3,18 @@ import * as Yup from 'yup';
 // Yup validation schema for RSVP form
 export const validationSchema = Yup.object({
   name: Yup.string()
-    .required('Name is required')
+    .required('Tên là bắt buộc')
     .trim()
-    .min(2, 'Name must be at least 2 characters')
-    .max(50, 'Name must be no more than 50 characters'),
+    .min(2, 'Tên phải có ít nhất 2 ký tự')
+    .max(50, 'Tên không được quá 50 ký tự'),
   relationship: Yup.string()
-    .required('Relationship is required')
-    .min(1, 'Relationship must be at least 1 character long')
-    .max(100, 'Relationship must be no more than 100 characters long'),
+    .required('Mối quan hệ là bắt buộc')
+    .min(1, 'Mối quan hệ phải có ít nhất 1 ký tự')
+    .max(100, 'Mối quan hệ không được quá 100 ký tự'),
   attendance: Yup.string()
-    .required('Please select your attendance status')
-    .oneOf(['yes', 'no', 'maybe'], 'Please select a valid attendance option'),
+    .required('Vui lòng chọn trạng thái tham dự')
+    .oneOf(['yes', 'no', 'maybe'], 'Vui lòng chọn một tùy chọn tham dự hợp lệ'),
   message: Yup.string()
-    .max(500, 'Message must be no more than 500 characters long')
+    .max(500, 'Tin nhắn không được quá 500 ký tự')
     .optional(),
 });

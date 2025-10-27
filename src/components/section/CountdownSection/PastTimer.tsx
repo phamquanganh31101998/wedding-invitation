@@ -31,7 +31,7 @@ export default function PastTimer({ config, className }: PastTimerProps) {
           fontWeight="semibold"
           color="gray.700"
         >
-          Our Wedding Day
+          Ngày Cưới Của Chúng Tôi
         </Heading>
         <Text
           id="countdown-status"
@@ -41,7 +41,7 @@ export default function PastTimer({ config, className }: PastTimerProps) {
           aria-live="polite"
           aria-atomic="true"
         >
-          The wedding has passed
+          Đám cưới đã diễn ra
         </Text>
       </VStack>
     </Box>

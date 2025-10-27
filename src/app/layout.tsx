@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Wedding Invitation',
-  description: "You're invited to our special day",
+  title: 'Thiệp Cưới',
+  description: "Bạn được mời tham dự ngày đặc biệt của chúng tôi",
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

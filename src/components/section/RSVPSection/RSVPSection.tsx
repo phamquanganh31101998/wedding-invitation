@@ -14,7 +14,8 @@ export default function RSVPSection({ guestId, guest }: RSVPSectionProps) {
     <VStack spacing={8}>
       <Box>
         <Text fontSize={{ base: 'md', sm: 'lg' }} color="gray.600" px={2}>
-          Please let us know if you can join us for our special day
+          Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của chúng
+          tôi không
         </Text>
       </Box>
 

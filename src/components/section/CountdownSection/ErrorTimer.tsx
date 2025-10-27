@@ -31,7 +31,7 @@ export default function ErrorTimer({ config, className }: ErrorTimerProps) {
           fontWeight="semibold"
           color="gray.700"
         >
-          Countdown to Our Big Day
+          Đếm Ngược Đến Ngày Trọng Đại
         </Heading>
         <Text
           id="countdown-status"
@@ -41,7 +41,7 @@ export default function ErrorTimer({ config, className }: ErrorTimerProps) {
           aria-live="polite"
           aria-atomic="true"
         >
-          Wedding coming soon!
+          Đám cưới sắp diễn ra!
         </Text>
       </VStack>
     </Box>

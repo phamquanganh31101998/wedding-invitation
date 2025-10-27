@@ -75,7 +75,7 @@ const MapSection = ({
             onClick={handleGetDirections}
             width={['full', 'auto']}
           >
-            Get Directions
+            Chỉ Đường
           </Button>
         </VStack>
       </VStack>

@@ -24,11 +24,11 @@ interface PositionFieldProps {
 }
 
 const COMMON_RELATIONSHIPS = [
-  'Friend',
-  'Family',
-  'Colleague',
-  'Neighbor',
-  'Other',
+  'Bạn bè',
+  'Gia đình',
+  'Đồng nghiệp',
+  'Hàng xóm',
+  'Khác',
 ];
 
 const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
@@ -70,8 +70,8 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
       setFilteredSuggestions(
         value.trim()
           ? COMMON_RELATIONSHIPS.filter((relationship) =>
-              relationship.toLowerCase().includes(value.toLowerCase())
-            )
+            relationship.toLowerCase().includes(value.toLowerCase())
+          )
           : COMMON_RELATIONSHIPS
       );
       onOpen();
@@ -91,7 +91,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
         position="relative"
       >
         <FormLabel htmlFor="position-field">
-          Your Relationship with the Couple
+          Mối Quan Hệ Với Cô Dâu Chú Rể
         </FormLabel>
         <Input
           ref={ref || inputRef}
@@ -101,7 +101,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           value={value}
           onChange={handleChange}
           onFocus={handleFocus}
-          placeholder="e.g., Friend, Family, Colleague..."
+          placeholder="ví dụ: Bạn bè, Gia đình, Đồng nghiệp..."
           isDisabled={isDisabled}
           aria-describedby={error ? 'position-error' : 'position-helper'}
           minH="44px" // Ensure 44px minimum touch target
@@ -165,8 +165,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           </FormErrorMessage>
         ) : (
           <FormHelperText id="position-helper" textAlign="left">
-            How do you know the couple? You can select from suggestions or type
-            your own.
+            Bạn quen biết cô dâu chú rể như thế nào? Bạn có thể chọn từ gợi ý hoặc tự nhập.
           </FormHelperText>
         )}
       </FormControl>

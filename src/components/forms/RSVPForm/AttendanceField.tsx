@@ -22,11 +22,11 @@ interface AttendanceFieldProps {
 const ATTENDANCE_OPTIONS = [
   {
     value: 'yes',
-    label: 'Yes',
+    label: 'Có',
   },
   {
     value: 'no',
-    label: 'No',
+    label: 'Không',
   },
 ];
 
@@ -34,7 +34,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
   ({ value, onChange, error, isRequired = true, isDisabled = false }, ref) => {
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired} ref={ref}>
-        <FormLabel htmlFor="attendance-field">Will you be attending?</FormLabel>
+        <FormLabel htmlFor="attendance-field">Bạn có tham dự không?</FormLabel>
         <RadioGroup
           id="attendance-field"
           name="attendance"
@@ -72,8 +72,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
           </FormErrorMessage>
         ) : (
           <FormHelperText id="attendance-helper" textAlign="left">
-            Please let us know if you&apos;ll be able to join us for our special
-            day
+            Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của chúng tôi không
           </FormHelperText>
         )}
       </FormControl>

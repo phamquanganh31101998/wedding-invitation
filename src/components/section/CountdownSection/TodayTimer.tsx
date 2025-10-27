@@ -31,7 +31,7 @@ export default function TodayTimer({ config, className }: TodayTimerProps) {
           fontWeight="semibold"
           color="green.800"
         >
-          Countdown to Our Big Day
+          Đếm Ngược Đến Ngày Trọng Đại
         </Heading>
         <Text
           id="countdown-status"
@@ -42,8 +42,8 @@ export default function TodayTimer({ config, className }: TodayTimerProps) {
           aria-atomic="true"
           role="status"
         >
-          <span aria-label="Today is the wedding day! Celebration emoji">
-            Today is the day! 🎉
+          <span aria-label="Hôm nay là ngày cưới! Biểu tượng ăn mừng">
+            Hôm nay là ngày trọng đại! 🎉
           </span>
         </Text>
       </VStack>

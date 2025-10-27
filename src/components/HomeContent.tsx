@@ -17,7 +17,7 @@ export default function HomeContent() {
   const { guest, loading } = useGuest(guestId);
 
   const guestName = guest?.name || '';
-  const guestGreeting = guestName ? `Hello ${guestName}. ` : 'Hello. ';
+  const guestGreeting = guestName ? `Xin chào ${guestName}. ` : 'Xin chào. ';
 
   return (
     <Layout
@@ -39,10 +39,10 @@ export default function HomeContent() {
             {loading ? (
               <>
                 <Spinner size="sm" mr={2} />
-                Loading...
+                Đang tải...
               </>
             ) : (
-              `${guestGreeting}We're Getting Married!`
+              `${guestGreeting}Chúng tôi sắp kết hôn!`
             )}
           </Text>
           <Text fontSize={{ base: 'xl', sm: '2xl' }} color="gray.600" mb={2}>
@@ -54,8 +54,9 @@ export default function HomeContent() {
         </Box>
 
         <Text fontSize={{ base: 'md', sm: 'lg' }} color="gray.700" px={2}>
-          We&apos;re excited to celebrate our special day with you! Join us for
-          a day filled with love, laughter, and unforgettable memories.
+          Chúng tôi rất vui mừng được chia sẻ ngày đặc biệt này với bạn! Hãy
+          cùng chúng tôi tận hưởng một ngày tràn đầy tình yêu, tiếng cười và
+          những kỷ niệm khó quên.
         </Text>
 
         {/* Countdown Timer with Error Boundary */}

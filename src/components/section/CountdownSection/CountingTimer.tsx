@@ -15,10 +15,9 @@ export default function CountingTimer({
   config,
   className,
 }: CountingTimerProps) {
-  const countdownText = `${days} ${days === 1 ? 'day' : 'days'} to go!`;
-  const screenReaderText = `${days} ${
-    days === 1 ? 'day' : 'days'
-  } remaining until the wedding`;
+  const countdownText = `Còn ${days} ${days === 1 ? 'ngày' : 'ngày'} nữa!`;
+  const screenReaderText = `Còn ${days} ${days === 1 ? 'ngày' : 'ngày'
+    } nữa cho đến đám cưới`;
 
   return (
     <Box
@@ -41,7 +40,7 @@ export default function CountingTimer({
           fontWeight="semibold"
           color="gray.700"
         >
-          Countdown to Our Big Day
+          Đếm Ngược Đến Ngày Trọng Đại
         </Heading>
         <Text
           id="countdown-status"

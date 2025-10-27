@@ -37,7 +37,8 @@ const Footer = () => {
             </Link>
           </HStack> */}
           <Text fontSize="xs" color="gray.600" textAlign="center">
-            © 2025 Our Wedding. Made with love (chú rể tự code)
+            © 2025 Đám Cưới Của Chúng Tôi (chú rể tự
+            code)
           </Text>
         </VStack>
       </Container>

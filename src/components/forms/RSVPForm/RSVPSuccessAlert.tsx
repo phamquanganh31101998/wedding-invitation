@@ -29,10 +29,10 @@ const RSVPSuccessAlert: React.FC<RSVPSuccessAlertProps> = ({ onReset }) => {
       >
         <AlertIcon boxSize="40px" mr={0} />
         <AlertTitle mt={4} mb={1} fontSize="lg">
-          RSVP Submitted Successfully!
+          Gửi RSVP Thành Công!
         </AlertTitle>
         <AlertDescription maxWidth="sm">
-          Thank you for your response. We look forward to celebrating with you!
+          Cảm ơn phản hồi của bạn. Chúng tôi mong được ăn mừng cùng bạn!
         </AlertDescription>
         <Button
           mt={4}
@@ -42,7 +42,7 @@ const RSVPSuccessAlert: React.FC<RSVPSuccessAlertProps> = ({ onReset }) => {
           size={{ base: 'sm', sm: 'md' }}
           minH="44px"
         >
-          Submit Another RSVP
+          Gửi RSVP Khác
         </Button>
       </Alert>
     </Box>

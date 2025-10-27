@@ -35,14 +35,14 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
 
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired}>
-        <FormLabel htmlFor="message-field">Message for the Couple</FormLabel>
+        <FormLabel htmlFor="message-field">Lời Nhắn Gửi Cô Dâu Chú Rể</FormLabel>
         <Textarea
           ref={ref}
           id="message-field"
           name="message"
           value={value}
           onChange={handleChange}
-          placeholder="Share your excitement or well-wishes with the couple..."
+          placeholder="Chia sẻ niềm vui hoặc lời chúc tốt đẹp với cô dâu chú rể..."
           isDisabled={isDisabled}
           aria-describedby={error ? 'message-error' : 'message-helper'}
           minH={{ base: '100px', sm: '120px' }} // Responsive height
@@ -63,7 +63,7 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
               </FormErrorMessage>
             ) : (
               <FormHelperText id="message-helper" mt={0} textAlign="left">
-                Share your thoughts, well-wishes, or excitement for the big day
+                Chia sẻ suy nghĩ, lời chúc tốt đẹp hoặc niềm vui cho ngày trọng đại
               </FormHelperText>
             )}
           </div>

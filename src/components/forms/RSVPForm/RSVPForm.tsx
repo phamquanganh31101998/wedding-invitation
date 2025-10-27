@@ -85,11 +85,11 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
       const isUpdate = initialData !== null;
       toast({
         title: isUpdate
-          ? 'RSVP Updated Successfully!'
-          : 'RSVP Submitted Successfully!',
+          ? 'Cập Nhật RSVP Thành Công!'
+          : 'Gửi RSVP Thành Công!',
         description: isUpdate
-          ? 'Your RSVP has been updated. Thank you!'
-          : 'Thank you for your response. We look forward to celebrating with you!',
+          ? 'RSVP của bạn đã được cập nhật. Cảm ơn bạn!'
+          : 'Cảm ơn phản hồi của bạn. Chúng tôi mong được ăn mừng cùng bạn!',
         status: 'success',
         duration: 5000,
         isClosable: true,
@@ -106,7 +106,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
       }));
 
       toast({
-        title: 'Submission Failed',
+        title: 'Gửi Thất Bại',
         description: errorMessage,
         status: 'error',
         duration: 5000,
@@ -192,7 +192,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
                 w="full"
                 fontSize={{ base: 'md', sm: 'lg' }}
                 isLoading={isSubmitting}
-                loadingText="Submitting RSVP..."
+                loadingText="Đang gửi RSVP..."
                 isDisabled={!isValid || isSubmitting}
                 _hover={{
                   transform: 'translateY(-1px)',
@@ -202,7 +202,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
                   transform: 'translateY(0)',
                 }}
               >
-                Submit RSVP
+                Gửi RSVP
               </Button>
             </VStack>
           </Form>

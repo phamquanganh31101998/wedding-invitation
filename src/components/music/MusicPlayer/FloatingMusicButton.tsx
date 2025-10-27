@@ -73,29 +73,29 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
       : '';
 
     if (state.isLoading) {
-      return `Loading music${trackInfo}`;
+      return `Đang tải nhạc${trackInfo}`;
     }
     if (state.hasError) {
-      return `Music player error${trackInfo} - click to retry`;
+      return `Lỗi trình phát nhạc${trackInfo} - nhấp để thử lại`;
     }
     return state.isPlaying
-      ? `Pause music${trackInfo}`
-      : `Play music${trackInfo}`;
+      ? `Tạm dừng nhạc${trackInfo}`
+      : `Phát nhạc${trackInfo}`;
   };
 
   // Get detailed description for screen readers
   const getAriaDescription = () => {
     if (state.playlist.length === 0) {
-      return 'No music available';
+      return 'Không có nhạc';
     }
 
     const trackInfo = state.currentTrack
-      ? `Currently loaded: ${state.currentTrack.title}`
-      : 'No track selected';
+      ? `Đang tải: ${state.currentTrack.title}`
+      : 'Chưa chọn bài hát';
 
-    const playlistInfo = `Playlist has ${state.playlist.length} track${state.playlist.length !== 1 ? 's' : ''}`;
+    const playlistInfo = `Danh sách phát có ${state.playlist.length} bài hát`;
 
-    return `${trackInfo}. ${playlistInfo}. Use space or enter to toggle playback.`;
+    return `${trackInfo}. ${playlistInfo}. Sử dụng phím cách hoặc enter để bật/tắt phát nhạc.`;
   };
 
   // Enhanced click handler with error recovery
@@ -130,10 +130,10 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
     if (previousPlayingState.current !== state.isPlaying) {
       if (state.isPlaying) {
         announcement = state.currentTrack
-          ? `Now playing: ${state.currentTrack.title}`
-          : 'Music started';
+          ? `Đang phát: ${state.currentTrack.title}`
+          : 'Bắt đầu phát nhạc';
       } else if (!state.isLoading && !state.hasError) {
-        announcement = 'Music paused';
+        announcement = 'Tạm dừng nhạc';
       }
       previousPlayingState.current = state.isPlaying;
     }
@@ -141,18 +141,18 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
     // Announce track changes
     const currentTrackTitle = state.currentTrack?.title || null;
     if (previousTrack.current !== currentTrackTitle && currentTrackTitle) {
-      announcement = `Track changed to: ${currentTrackTitle}`;
+      announcement = `Chuyển sang bài: ${currentTrackTitle}`;
       previousTrack.current = currentTrackTitle;
     }
 
     // Announce loading state
     if (state.isLoading) {
-      announcement = 'Loading music...';
+      announcement = 'Đang tải nhạc...';
     }
 
     // Announce errors
     if (state.hasError) {
-      announcement = 'Music playback error. Press to retry.';
+      announcement = 'Lỗi phát nhạc. Nhấn để thử lại.';
     }
 
     // Update live region
@@ -315,26 +315,26 @@ export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
             },
             // Combined high contrast and reduced motion
             '@media (prefers-contrast: high) and (prefers-reduced-motion: reduce)':
-              {
+            {
+              bg: highContrastBgColor,
+              color: highContrastTextColor,
+              border: `2px solid ${highContrastBorderColor}`,
+              transition: 'none',
+              _hover: {
                 bg: highContrastBgColor,
                 color: highContrastTextColor,
-                border: `2px solid ${highContrastBorderColor}`,
-                transition: 'none',
-                _hover: {
-                  bg: highContrastBgColor,
-                  color: highContrastTextColor,
-                  transform: 'none',
-                  boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
-                },
-                _active: {
-                  transform: 'none',
-                },
-                _focus: {
-                  boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
-                  outline: `2px solid ${highContrastFocusColor}`,
-                  outlineOffset: '2px',
-                },
+                transform: 'none',
+                boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
               },
+              _active: {
+                transform: 'none',
+              },
+              _focus: {
+                boxShadow: `0 0 0 4px ${highContrastFocusColor}`,
+                outline: `2px solid ${highContrastFocusColor}`,
+                outlineOffset: '2px',
+              },
+            },
           }}
         />
 
