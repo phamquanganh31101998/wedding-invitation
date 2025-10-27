@@ -622,7 +622,7 @@ describe('Complete Multi-Tenant End-to-End Tests', () => {
       mockGetTenantConfig.mockResolvedValue({
         id: 'malformed-tenant',
         // Missing required fields
-      } as any);
+      } as Partial<TenantConfig>);
 
       const validation = await validateTenantId('malformed-tenant');
       expect(validation.isValid).toBe(true);
@@ -844,7 +844,7 @@ describe('Complete Multi-Tenant End-to-End Tests', () => {
       global.fetch = jest.fn().mockImplementation(mockApiCall);
 
       // Create concurrent API requests
-      const apiPromises = Array.from({ length: 10 }, (_, i) =>
+      const apiPromises = Array.from({ length: 10 }, () =>
         fetch(`/api/config/tenant?tenant=john-jane`)
       );
 

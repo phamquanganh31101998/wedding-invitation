@@ -10,7 +10,7 @@ import {
   Text,
   Button,
 } from '@chakra-ui/react';
-import { notFound } from 'next/navigation';
+
 import HomeContent from '@/components/HomeContent';
 import { validateTenantId } from '@/utils/tenant';
 import Link from 'next/link';
@@ -45,8 +45,8 @@ function TenantErrorFallback({
           <VStack align="start" spacing={2}>
             <AlertTitle>Tenant Not Found</AlertTitle>
             <AlertDescription>
-              The wedding invitation for "{tenantId}" could not be found.{' '}
-              {error}
+              The wedding invitation for &quot;{tenantId}&quot; could not be
+              found. {error}
             </AlertDescription>
           </VStack>
         </Alert>

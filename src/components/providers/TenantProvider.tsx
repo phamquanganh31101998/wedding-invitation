@@ -3,8 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { TenantContextType, TenantConfig } from '@/types';
-import { getTenantConfig, validateTenantExists } from '@/utils/csv';
-import { extractTenantFromPath } from '@/utils/tenant';
+import { extractTenantFromPath } from '@/utils/tenant-client';
 
 // Create the context
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -48,23 +47,37 @@ export function TenantProvider({
       }
 
       try {
-        // Validate tenant exists first
-        const exists = await validateTenantExists(tenantId);
-        if (!exists) {
-          setError(`Tenant '${tenantId}' not found or inactive`);
+        // Validate tenant exists first via API
+        const validationResponse = await fetch(
+          `/api/tenant/validate?tenant=${encodeURIComponent(tenantId)}`
+        );
+        const validationData = await validationResponse.json();
+
+        if (!validationData.isValid) {
+          setError(
+            validationData.error || `Tenant '${tenantId}' not found or inactive`
+          );
           setIsLoading(false);
           return;
         }
 
-        // Load tenant configuration
-        const tenantConfig = await getTenantConfig(tenantId);
-        if (!tenantConfig) {
-          setError(`Configuration not found for tenant '${tenantId}'`);
+        // Load tenant configuration via API
+        const configResponse = await fetch(
+          `/api/config/tenant?tenant=${encodeURIComponent(tenantId)}`
+        );
+
+        if (!configResponse.ok) {
+          const errorData = await configResponse.json();
+          setError(
+            errorData.error ||
+              `Configuration not found for tenant '${tenantId}'`
+          );
           setIsLoading(false);
           return;
         }
 
-        setConfig(tenantConfig);
+        const configData = await configResponse.json();
+        setConfig(configData.data);
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';

@@ -265,7 +265,7 @@ describe('Multi-Tenant End-to-End Functionality', () => {
       const results = await Promise.all(validationPromises);
 
       // All should succeed
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         expect(result.isValid).toBe(true);
       });
 

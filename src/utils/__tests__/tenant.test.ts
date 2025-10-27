@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import {
   extractTenantFromPath,
   validateTenantId,
@@ -10,8 +13,8 @@ import {
   createTenantRedirectUrl,
 } from '../tenant';
 import { validateTenantExists } from '../csv';
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+// import path from 'path';
 
 // Mock the CSV utilities
 jest.mock('../csv', () => ({

@@ -4,7 +4,8 @@ import csv from 'csv-parser';
 import * as createCsvWriter from 'csv-writer';
 import { RSVPData, TenantConfig } from '@/types';
 
-const CSV_FILE_PATH = path.join(process.cwd(), 'data', 'rsvp.csv');
+// Legacy CSV file path (kept for reference)
+// const CSV_FILE_PATH = path.join(process.cwd(), 'data', 'rsvp.csv');
 
 // Helper function to get tenant-specific file paths
 function getTenantFilePath(tenantId: string, filename: string): string {
@@ -36,18 +37,19 @@ function createTenantCSVWriter(tenantId: string, append: boolean = true) {
   });
 }
 
-const csvWriter = createCsvWriter.createObjectCsvWriter({
-  path: CSV_FILE_PATH,
-  header: [
-    { id: 'id', title: 'ID' },
-    { id: 'name', title: 'Name' },
-    { id: 'relationship', title: 'Relationship' },
-    { id: 'attendance', title: 'Attendance' },
-    { id: 'message', title: 'Message' },
-    { id: 'submittedAt', title: 'Submitted At' },
-  ],
-  append: true,
-});
+// Legacy CSV writer configuration (kept for reference)
+// const csvWriter = createCsvWriter.createObjectCsvWriter({
+//   path: CSV_FILE_PATH,
+//   header: [
+//     { id: 'id', title: 'ID' },
+//     { id: 'name', title: 'Name' },
+//     { id: 'relationship', title: 'Relationship' },
+//     { id: 'attendance', title: 'Attendance' },
+//     { id: 'message', title: 'Message' },
+//     { id: 'submittedAt', title: 'Submitted At' },
+//   ],
+//   append: true,
+// });
 
 // Legacy function for backward compatibility
 export async function readRSVPData(): Promise<RSVPData[]> {
@@ -240,10 +242,10 @@ export async function updateTenantRSVPData(
   }
 }
 
-// Legacy function for backward compatibility
-async function rewriteCSVFile(data: RSVPData[]): Promise<void> {
-  return rewriteTenantCSVFile('default', data);
-}
+// Legacy function for backward compatibility (unused)
+// async function rewriteCSVFile(data: RSVPData[]): Promise<void> {
+//   return rewriteTenantCSVFile('default', data);
+// }
 
 // New tenant-aware function
 async function rewriteTenantCSVFile(
