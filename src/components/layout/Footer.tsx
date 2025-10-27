@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, Text, VStack, HStack, Link } from '@chakra-ui/react';
+import { Box, Container, Text, VStack } from '@chakra-ui/react';
 
 const Footer = () => {
   return (
@@ -18,7 +18,7 @@ const Footer = () => {
         py={6}
       >
         <VStack spacing={4}>
-          <HStack spacing={4} flexWrap="wrap" justify="center">
+          {/* <HStack spacing={4} flexWrap="wrap" justify="center">
             <Link href="/" _hover={{ color: 'brand.600' }} fontSize="sm">
               Home
             </Link>
@@ -35,7 +35,7 @@ const Footer = () => {
             >
               Directions
             </Link>
-          </HStack>
+          </HStack> */}
           <Text fontSize="xs" color="gray.600" textAlign="center">
             © 2025 Our Wedding. Made with love (chú rể tự code)
           </Text>

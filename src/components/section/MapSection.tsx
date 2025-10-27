@@ -34,7 +34,15 @@ const MapSection = ({
   };
 
   return (
-    <Container maxW="100%">
+    <Container
+      maxW={{
+        base: '100%', // Mobile: 100% width
+        sm: '420px', // Tablet: 420px max-width
+        md: '420px', // Desktop: 420px max-width
+        lg: '420px', // Large: 420px max-width
+        xl: '420px', // XL: 420px max-width
+      }}
+    >
       <VStack spacing={6} align="stretch">
         <VStack spacing={2} textAlign="center">
           <Heading size="lg" color="gray.700">

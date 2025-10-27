@@ -4,11 +4,10 @@ import Layout from '@/components/layout/Layout';
 import { FloatingMusicButton } from '@/components/music/MusicPlayer';
 import CountdownSection from '@/components/section/CountdownSection';
 import RSVPSection from '@/components/section/RSVPSection';
-import { VStack, Text, Box, Spinner, Button } from '@chakra-ui/react';
+import { VStack, Text, Box, Spinner, Container } from '@chakra-ui/react';
 import { useSearchParams } from 'next/navigation';
 import { useGuest } from '@/hooks/useGuest';
-import EmbeddedMapSection from '@/components/section/MapSection';
-import Link from 'next/link';
+import MapSection from '@/components/section/MapSection';
 
 const TARGET_DATE = new Date('2025-12-29');
 
@@ -21,7 +20,13 @@ export default function HomeContent() {
   const guestGreeting = guestName ? `Hello ${guestName}. ` : 'Hello. ';
 
   return (
-    <Layout>
+    <Layout
+      extraContent={
+        <Container pb={8}>
+          <MapSection />
+        </Container>
+      }
+    >
       <VStack spacing={8} textAlign="center" py={12}>
         <Box>
           <Text
@@ -53,23 +58,10 @@ export default function HomeContent() {
           a day filled with love, laughter, and unforgettable memories.
         </Text>
 
-        <VStack spacing={4}>
-          <Link href={guestId ? `/rsvp?id=${guestId}` : '/rsvp'}>
-            <Button colorScheme="brand" size="lg" px={8}>
-              RSVP Now
-            </Button>
-          </Link>
-          <Text fontSize="sm" color="gray.500">
-            Please respond by [RSVP Date]
-          </Text>
-        </VStack>
-
         {/* Countdown Timer with Error Boundary */}
         <CountdownSection targetDate={TARGET_DATE} />
 
         <RSVPSection guestId={guestId} guest={guest} />
-
-        <EmbeddedMapSection />
 
         <FloatingMusicButton />
       </VStack>

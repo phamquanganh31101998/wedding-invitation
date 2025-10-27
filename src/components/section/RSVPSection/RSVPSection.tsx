@@ -11,7 +11,7 @@ interface RSVPSectionProps {
 
 export default function RSVPSection({ guestId, guest }: RSVPSectionProps) {
   return (
-    <VStack spacing={8} py={12}>
+    <VStack spacing={8}>
       <Box>
         <Text fontSize={{ base: 'md', sm: 'lg' }} color="gray.600" px={2}>
           Please let us know if you can join us for our special day

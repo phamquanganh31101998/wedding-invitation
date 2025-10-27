@@ -6,9 +6,11 @@ import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
+  // Render UI that scale to full width
+  extraContent?: React.ReactNode;
 }
 
-const Layout = ({ children }: LayoutProps) => {
+const Layout = ({ children, extraContent }: LayoutProps) => {
   return (
     <Flex direction="column" minH="100vh" bg="white">
       {/* <Header /> */}
@@ -27,6 +29,9 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </Container>
       </Box>
+
+      {extraContent}
+
       <Footer />
     </Flex>
   );
