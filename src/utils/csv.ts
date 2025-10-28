@@ -9,7 +9,7 @@ import { RSVPData, TenantConfig } from '@/types';
 
 // Helper function to get tenant-specific file paths
 function getTenantFilePath(tenantId: string, filename: string): string {
-  return path.join(process.cwd(), 'data', tenantId, filename);
+  return path.join(process.cwd(), 'data', 'tenants', tenantId, filename);
 }
 
 function getTenantRSVPPath(tenantId: string): string {

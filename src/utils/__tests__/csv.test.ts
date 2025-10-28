@@ -34,12 +34,12 @@ describe('CSV Utilities', () => {
       await writeRSVPData(mockRSVPData);
 
       expect(mockFs.writeFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         'ID,Name,Relationship,Attendance,Message,Submitted At\n',
         'utf8'
       );
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John Doe",Friend,yes,"Congratulations!","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
@@ -53,7 +53,7 @@ describe('CSV Utilities', () => {
 
       expect(mockFs.writeFile).not.toHaveBeenCalled();
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John Doe",Friend,yes,"Congratulations!","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
@@ -72,7 +72,7 @@ describe('CSV Utilities', () => {
       await writeRSVPData(dataWithCommas);
 
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John, Jr. Doe",Friend,yes,"Congratulations, and best wishes!","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
@@ -91,7 +91,7 @@ describe('CSV Utilities', () => {
       await writeRSVPData(dataWithQuotes);
 
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John ""Johnny"" Doe",Friend,yes,"He said ""Congratulations!""","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
@@ -109,7 +109,7 @@ describe('CSV Utilities', () => {
       await writeRSVPData(dataWithEmptyMessage);
 
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John Doe",Friend,yes,"","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
@@ -127,7 +127,7 @@ describe('CSV Utilities', () => {
       await writeRSVPData(dataWithUndefinedMessage);
 
       expect(mockFs.appendFile).toHaveBeenCalledWith(
-        'data/rsvp.csv',
+        'data/tenants/default/rsvp.csv',
         '1234567890,"John Doe",Friend,yes,"","2023-01-01T00:00:00.000Z"\n',
         'utf8'
       );
