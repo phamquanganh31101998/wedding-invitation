@@ -58,6 +58,34 @@ export type CountdownSize = 'sm' | 'md' | 'lg';
 // Countdown timer size configurations mapping
 export type CountdownSizeConfigs = Record<CountdownSize, CountdownSizeConfig>;
 
+// Database Types
+export interface DatabaseTenant {
+  id: string;
+  bride_name: string;
+  groom_name: string;
+  wedding_date: string;
+  venue_name: string;
+  venue_address: string;
+  venue_map_link?: string;
+  theme_primary_color: string;
+  theme_secondary_color: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DatabaseRSVP {
+  id: number;
+  tenant_id: string;
+  name: string;
+  relationship: string;
+  attendance: 'yes' | 'no' | 'maybe';
+  message?: string;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Tenant Configuration Types
 export interface TenantConfig {
   id: string;
@@ -87,6 +115,21 @@ export interface TenantContextType {
 
 export interface TenantRSVPData extends RSVPData {
   tenantId: string;
+}
+
+// Database utility types
+export interface DatabaseResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+export interface MigrationResult {
+  success: boolean;
+  migratedCount?: number;
+  errors?: string[];
+  message: string;
+  backupPath?: string;
 }
 
 // Music Player Types

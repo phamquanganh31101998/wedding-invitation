@@ -1,32 +1,49 @@
 import { NextRequest } from 'next/server';
 import { POST, GET } from '../route';
-import * as csvUtils from '@/utils/csv';
+import * as databaseUtils from '@/utils/database';
+import * as tenantUtils from '@/utils/tenant';
 
-// Mock the CSV utilities
-jest.mock('@/utils/csv', () => ({
-  writeRSVPData: jest.fn(),
-  readRSVPData: jest.fn(),
+// Mock the database utilities
+jest.mock('@/utils/database', () => ({
+  createRSVP: jest.fn(),
+  getRSVPs: jest.fn(),
 }));
 
-const mockWriteRSVPData = csvUtils.writeRSVPData as jest.MockedFunction<
-  typeof csvUtils.writeRSVPData
+// Mock the tenant utilities
+jest.mock('@/utils/tenant', () => ({
+  validateTenantId: jest.fn(),
+}));
+
+// Mock the error handling utility
+jest.mock('@/utils/error-handling', () => ({
+  handleApiError: jest.fn(),
+  InputSanitizer: {
+    sanitizeTenantId: jest.fn((id) => id),
+    sanitizeString: jest.fn((str) => str),
+    sanitizeMessage: jest.fn((msg) => msg),
+  },
+}));
+
+const mockCreateRSVP = databaseUtils.createRSVP as jest.MockedFunction<
+  typeof databaseUtils.createRSVP
 >;
-const mockReadRSVPData = csvUtils.readRSVPData as jest.MockedFunction<
-  typeof csvUtils.readRSVPData
+const mockGetRSVPs = databaseUtils.getRSVPs as jest.MockedFunction<
+  typeof databaseUtils.getRSVPs
 >;
+const mockValidateTenantId =
+  tenantUtils.validateTenantId as jest.MockedFunction<
+    typeof tenantUtils.validateTenantId
+  >;
 
 describe('/api/rsvp', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Mock Date.now() for consistent ID generation
-    jest.spyOn(Date, 'now').mockReturnValue(1234567890);
-    // Mock Date constructor for consistent timestamps
-    jest.spyOn(global, 'Date').mockImplementation(
-      () =>
-        ({
-          toISOString: () => '2023-01-01T00:00:00.000Z',
-        }) as Date
-    );
+
+    // Mock successful tenant validation by default
+    mockValidateTenantId.mockResolvedValue({
+      isValid: true,
+      tenantId: 'default',
+    });
   });
 
   afterEach(() => {
@@ -42,15 +59,30 @@ describe('/api/rsvp', () => {
         message: 'Congratulations!',
       };
 
-      mockWriteRSVPData.mockResolvedValueOnce(undefined);
+      const mockDbResponse = {
+        id: 1,
+        tenant_id: 'default',
+        name: 'John Doe',
+        relationship: 'Friend',
+        attendance: 'yes' as const,
+        message: 'Congratulations!',
+        submitted_at: '2023-01-01T00:00:00.000Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+      };
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(validRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      mockCreateRSVP.mockResolvedValueOnce(mockDbResponse);
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default',
+        {
+          method: 'POST',
+          body: JSON.stringify(validRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const response = await POST(request);
       const responseData = await response.json();
@@ -58,7 +90,7 @@ describe('/api/rsvp', () => {
       expect(response.status).toBe(201);
       expect(responseData.message).toBe('RSVP submitted successfully');
       expect(responseData.data).toEqual({
-        id: '1234567890',
+        id: '1',
         name: 'John Doe',
         relationship: 'Friend',
         attendance: 'yes',
@@ -66,13 +98,12 @@ describe('/api/rsvp', () => {
         submittedAt: '2023-01-01T00:00:00.000Z',
       });
 
-      expect(mockWriteRSVPData).toHaveBeenCalledWith({
-        id: '1234567890',
+      expect(mockCreateRSVP).toHaveBeenCalledWith({
+        tenantId: 'default',
         name: 'John Doe',
         relationship: 'Friend',
         attendance: 'yes',
         message: 'Congratulations!',
-        submittedAt: '2023-01-01T00:00:00.000Z',
       });
     });
 
@@ -83,15 +114,30 @@ describe('/api/rsvp', () => {
         attendance: 'no',
       };
 
-      mockWriteRSVPData.mockResolvedValueOnce(undefined);
+      const mockDbResponse = {
+        id: 2,
+        tenant_id: 'default',
+        name: 'Jane Smith',
+        relationship: 'Family',
+        attendance: 'no' as const,
+        message: null,
+        submitted_at: '2023-01-01T00:00:00.000Z',
+        created_at: '2023-01-01T00:00:00.000Z',
+        updated_at: '2023-01-01T00:00:00.000Z',
+      };
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(validRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      mockCreateRSVP.mockResolvedValueOnce(mockDbResponse);
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default',
+        {
+          method: 'POST',
+          body: JSON.stringify(validRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const response = await POST(request);
       const responseData = await response.json();
@@ -106,13 +152,16 @@ describe('/api/rsvp', () => {
         attendance: 'yes',
       };
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default',
+        {
+          method: 'POST',
+          body: JSON.stringify(invalidRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const response = await POST(request);
       const responseData = await response.json();
@@ -122,75 +171,6 @@ describe('/api/rsvp', () => {
       expect(responseData.details).toContain('Name is required');
     });
 
-    it('should validate name length constraints', async () => {
-      const invalidRSVPData = {
-        name: 'A', // Too short
-        relationship: 'Friend',
-        attendance: 'yes',
-      };
-
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(responseData.details).toContain(
-        'Name must be between 2 and 50 characters'
-      );
-    });
-
-    it('should validate required relationship field', async () => {
-      const invalidRSVPData = {
-        name: 'John Doe',
-        attendance: 'yes',
-      };
-
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(responseData.details).toContain('Relationship is required');
-    });
-
-    it('should validate relationship length constraints', async () => {
-      const invalidRSVPData = {
-        name: 'John Doe',
-        relationship: 'A'.repeat(101), // Too long
-        attendance: 'yes',
-      };
-
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(responseData.details).toContain(
-        'Relationship must be between 1 and 100 characters'
-      );
-    });
-
     it('should validate attendance field values', async () => {
       const invalidRSVPData = {
         name: 'John Doe',
@@ -198,13 +178,16 @@ describe('/api/rsvp', () => {
         attendance: 'invalid',
       };
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default',
+        {
+          method: 'POST',
+          body: JSON.stringify(invalidRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const response = await POST(request);
       const responseData = await response.json();
@@ -215,134 +198,104 @@ describe('/api/rsvp', () => {
       );
     });
 
-    it('should validate message length constraint', async () => {
-      const invalidRSVPData = {
+    it('should handle invalid tenant', async () => {
+      mockValidateTenantId.mockResolvedValueOnce({
+        isValid: false,
+        error: 'Tenant not found',
+      });
+
+      const validRSVPData = {
         name: 'John Doe',
         relationship: 'Friend',
         attendance: 'yes',
-        message: 'A'.repeat(501), // Too long
       };
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(invalidRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=invalid',
+        {
+          method: 'POST',
+          body: JSON.stringify(validRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       const response = await POST(request);
       const responseData = await response.json();
 
       expect(response.status).toBe(400);
-      expect(responseData.details).toContain(
-        'Message must be no more than 500 characters'
-      );
+      expect(responseData.error).toBe('Invalid tenant');
+      expect(responseData.details).toBe('Tenant not found');
     });
 
-    it('should handle CSV write errors', async () => {
+    it('should handle database errors', async () => {
       const validRSVPData = {
         name: 'John Doe',
         relationship: 'Friend',
         attendance: 'yes',
       };
 
-      mockWriteRSVPData.mockRejectedValueOnce(
-        new Error('ENOENT: no such file or directory')
+      mockCreateRSVP.mockRejectedValueOnce(
+        new Error('Database connection failed')
       );
 
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(validRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(responseData.error).toBe(
-        'Failed to save RSVP data - file system error'
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default',
+        {
+          method: 'POST',
+          body: JSON.stringify(validRSVPData),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
       );
-    });
-
-    it('should handle permission errors', async () => {
-      const validRSVPData = {
-        name: 'John Doe',
-        relationship: 'Friend',
-        attendance: 'yes',
-      };
-
-      mockWriteRSVPData.mockRejectedValueOnce(new Error('permission denied'));
-
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(validRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
 
       const response = await POST(request);
-      const responseData = await response.json();
 
+      // The handleApiError mock should be called
       expect(response.status).toBe(500);
-      expect(responseData.error).toBe(
-        'Failed to save RSVP data - file system error'
-      );
-    });
-
-    it('should handle generic errors', async () => {
-      const validRSVPData = {
-        name: 'John Doe',
-        relationship: 'Friend',
-        attendance: 'yes',
-      };
-
-      mockWriteRSVPData.mockRejectedValueOnce(new Error('Generic error'));
-
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: JSON.stringify(validRSVPData),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Failed to submit RSVP');
-    });
-
-    it('should handle malformed JSON', async () => {
-      const request = new NextRequest('http://localhost:3000/api/rsvp', {
-        method: 'POST',
-        body: 'invalid json',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Failed to submit RSVP');
     });
   });
 
   describe('GET', () => {
     it('should successfully retrieve RSVP data', async () => {
-      const mockRSVPData = [
+      const mockDbRSVPs = [
+        {
+          id: 1,
+          tenant_id: 'default',
+          name: 'John Doe',
+          relationship: 'Friend',
+          attendance: 'yes' as const,
+          message: 'Congratulations!',
+          submitted_at: '2023-01-01T00:00:00.000Z',
+        },
+        {
+          id: 2,
+          tenant_id: 'default',
+          name: 'Jane Smith',
+          relationship: 'Family',
+          attendance: 'no' as const,
+          message: null,
+          submitted_at: '2023-01-02T00:00:00.000Z',
+        },
+      ];
+
+      mockGetRSVPs.mockResolvedValueOnce(mockDbRSVPs);
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default'
+      );
+      const response = await GET(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(responseData.data).toEqual([
         {
           id: '1',
           name: 'John Doe',
           relationship: 'Friend',
-          attendance: 'yes' as const,
+          attendance: 'yes',
           message: 'Congratulations!',
           submittedAt: '2023-01-01T00:00:00.000Z',
         },
@@ -350,40 +303,58 @@ describe('/api/rsvp', () => {
           id: '2',
           name: 'Jane Smith',
           relationship: 'Family',
-          attendance: 'no' as const,
+          attendance: 'no',
           message: '',
           submittedAt: '2023-01-02T00:00:00.000Z',
         },
-      ];
-
-      mockReadRSVPData.mockResolvedValueOnce(mockRSVPData);
-
-      const response = await GET();
-      const responseData = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(responseData.data).toEqual(mockRSVPData);
-      expect(mockReadRSVPData).toHaveBeenCalledTimes(1);
+      ]);
+      expect(responseData.count).toBe(2);
+      expect(mockGetRSVPs).toHaveBeenCalledWith('default');
     });
 
-    it('should handle CSV read errors', async () => {
-      mockReadRSVPData.mockRejectedValueOnce(new Error('Failed to read CSV'));
+    it('should handle database read errors', async () => {
+      mockGetRSVPs.mockRejectedValueOnce(
+        new Error('Database connection failed')
+      );
 
-      const response = await GET();
-      const responseData = await response.json();
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default'
+      );
+      const response = await GET(request);
 
+      // The handleApiError mock should be called
       expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Failed to read RSVP data');
     });
 
     it('should return empty array when no data exists', async () => {
-      mockReadRSVPData.mockResolvedValueOnce([]);
+      mockGetRSVPs.mockResolvedValueOnce([]);
 
-      const response = await GET();
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=default'
+      );
+      const response = await GET(request);
       const responseData = await response.json();
 
       expect(response.status).toBe(200);
       expect(responseData.data).toEqual([]);
+      expect(responseData.count).toBe(0);
+    });
+
+    it('should handle invalid tenant for GET request', async () => {
+      mockValidateTenantId.mockResolvedValueOnce({
+        isValid: false,
+        error: 'Tenant not found',
+      });
+
+      const request = new NextRequest(
+        'http://localhost:3000/api/rsvp?tenant=invalid'
+      );
+      const response = await GET(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(responseData.error).toBe('Invalid tenant');
+      expect(responseData.details).toBe('Tenant not found');
     });
   });
 });

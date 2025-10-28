@@ -11,18 +11,16 @@ import {
   identifyTenant,
   createTenantRedirectUrl,
 } from '../tenant';
-import { validateTenantExists } from '../csv';
+import { getTenant } from '../database';
 // import fs from 'fs';
 // import path from 'path';
 
-// Mock the CSV utilities
-jest.mock('../csv', () => ({
-  validateTenantExists: jest.fn(),
+// Mock the database utilities
+jest.mock('../database', () => ({
+  getTenant: jest.fn(),
 }));
 
-const mockValidateTenantExists = validateTenantExists as jest.MockedFunction<
-  typeof validateTenantExists
->;
+const mockGetTenant = getTenant as jest.MockedFunction<typeof getTenant>;
 
 describe('Tenant Utilities', () => {
   beforeEach(() => {
@@ -72,14 +70,27 @@ describe('Tenant Utilities', () => {
 
   describe('validateTenantId', () => {
     it('should validate existing active tenant', async () => {
-      mockValidateTenantExists.mockResolvedValue(true);
+      mockGetTenant.mockResolvedValue({
+        id: 'valid-tenant',
+        bride_name: 'Jane',
+        groom_name: 'John',
+        wedding_date: '2025-12-31',
+        venue_name: 'Test Venue',
+        venue_address: 'Test Address',
+        venue_map_link: null,
+        theme_primary_color: '#E53E3E',
+        theme_secondary_color: '#FED7D7',
+        is_active: true,
+        created_at: '2025-10-28T00:00:00Z',
+        updated_at: '2025-10-28T00:00:00Z',
+      });
 
       const result = await validateTenantId('valid-tenant');
       expect(result).toEqual({
         isValid: true,
         tenantId: 'valid-tenant',
       });
-      expect(mockValidateTenantExists).toHaveBeenCalledWith('valid-tenant');
+      expect(mockGetTenant).toHaveBeenCalledWith('valid-tenant');
     });
 
     it('should reject null tenant ID', async () => {
@@ -88,7 +99,7 @@ describe('Tenant Utilities', () => {
         isValid: false,
         error: 'No tenant ID provided',
       });
-      expect(mockValidateTenantExists).not.toHaveBeenCalled();
+      expect(mockGetTenant).not.toHaveBeenCalled();
     });
 
     it('should reject invalid format', async () => {
@@ -119,7 +130,7 @@ describe('Tenant Utilities', () => {
     });
 
     it('should reject non-existent tenant', async () => {
-      mockValidateTenantExists.mockResolvedValue(false);
+      mockGetTenant.mockResolvedValue(null);
 
       const result = await validateTenantId('non-existent');
       expect(result).toEqual({
@@ -128,8 +139,31 @@ describe('Tenant Utilities', () => {
       });
     });
 
+    it('should reject inactive tenant', async () => {
+      mockGetTenant.mockResolvedValue({
+        id: 'inactive-tenant',
+        bride_name: 'Jane',
+        groom_name: 'John',
+        wedding_date: '2025-12-31',
+        venue_name: 'Test Venue',
+        venue_address: 'Test Address',
+        venue_map_link: null,
+        theme_primary_color: '#E53E3E',
+        theme_secondary_color: '#FED7D7',
+        is_active: false,
+        created_at: '2025-10-28T00:00:00Z',
+        updated_at: '2025-10-28T00:00:00Z',
+      });
+
+      const result = await validateTenantId('inactive-tenant');
+      expect(result).toEqual({
+        isValid: false,
+        error: "Tenant 'inactive-tenant' not found or inactive.",
+      });
+    });
+
     it('should handle validation errors', async () => {
-      mockValidateTenantExists.mockRejectedValue(new Error('Database error'));
+      mockGetTenant.mockRejectedValue(new Error('Database error'));
 
       const result = await validateTenantId('error-tenant');
       expect(result).toEqual({
@@ -209,7 +243,20 @@ describe('Tenant Utilities', () => {
 
   describe('identifyTenant', () => {
     it('should identify valid tenant', async () => {
-      mockValidateTenantExists.mockResolvedValue(true);
+      mockGetTenant.mockResolvedValue({
+        id: 'john-jane',
+        bride_name: 'Jane',
+        groom_name: 'John',
+        wedding_date: '2025-12-31',
+        venue_name: 'Test Venue',
+        venue_address: 'Test Address',
+        venue_map_link: null,
+        theme_primary_color: '#E53E3E',
+        theme_secondary_color: '#FED7D7',
+        is_active: true,
+        created_at: '2025-10-28T00:00:00Z',
+        updated_at: '2025-10-28T00:00:00Z',
+      });
 
       const result = await identifyTenant('/john-jane/rsvp');
       expect(result).toEqual({
@@ -226,11 +273,11 @@ describe('Tenant Utilities', () => {
         isValid: true,
         shouldFallback: false,
       });
-      expect(mockValidateTenantExists).not.toHaveBeenCalled();
+      expect(mockGetTenant).not.toHaveBeenCalled();
     });
 
     it('should handle invalid tenant', async () => {
-      mockValidateTenantExists.mockResolvedValue(false);
+      mockGetTenant.mockResolvedValue(null);
 
       const result = await identifyTenant('/invalid-tenant');
       expect(result).toEqual({
@@ -242,7 +289,7 @@ describe('Tenant Utilities', () => {
     });
 
     it('should handle tenant validation errors', async () => {
-      mockValidateTenantExists.mockRejectedValue(new Error('Validation error'));
+      mockGetTenant.mockRejectedValue(new Error('Validation error'));
 
       const result = await identifyTenant('/error-tenant');
       expect(result).toEqual({

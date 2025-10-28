@@ -3,31 +3,43 @@
  * Tests actual API routes with HTTP requests
  */
 
-import {
-  validateTenantExists,
-  getTenantConfig,
-  writeRSVPData,
-} from '@/utils/csv';
+import { getTenant, createRSVP } from '@/utils/database';
+import { validateTenantId } from '@/utils/tenant';
 
-// Mock the CSV utilities
-jest.mock('@/utils/csv', () => ({
-  validateTenantExists: jest.fn(),
-  getTenantConfig: jest.fn(),
-  readRSVPData: jest.fn(),
-  writeRSVPData: jest.fn(),
+// Mock the database utilities
+jest.mock('@/utils/database', () => ({
+  getTenant: jest.fn(),
+  createRSVP: jest.fn(),
 }));
 
-const mockValidateTenantExists = validateTenantExists as jest.MockedFunction<
-  typeof validateTenantExists
->;
-const mockGetTenantConfig = getTenantConfig as jest.MockedFunction<
-  typeof getTenantConfig
->;
-const mockWriteRSVPData = writeRSVPData as jest.MockedFunction<
-  typeof writeRSVPData
+// Mock the tenant utilities
+jest.mock('@/utils/tenant', () => ({
+  validateTenantId: jest.fn(),
+}));
+
+const mockGetTenant = getTenant as jest.MockedFunction<typeof getTenant>;
+const mockCreateRSVP = createRSVP as jest.MockedFunction<typeof createRSVP>;
+// const mockGetRSVPs = getRSVPs as jest.MockedFunction<typeof getRSVPs>;
+const mockValidateTenantId = validateTenantId as jest.MockedFunction<
+  typeof validateTenantId
 >;
 
 // Test data
+const johnJaneDbTenant = {
+  id: 'john-jane',
+  bride_name: 'Jane Wilson',
+  groom_name: 'John Anderson',
+  wedding_date: '2025-11-15',
+  venue_name: 'Sunset Gardens',
+  venue_address: '456 Garden Ave, Springfield, IL',
+  venue_map_link: 'https://maps.google.com/john-jane',
+  theme_primary_color: '#E53E3E',
+  theme_secondary_color: '#1A202C',
+  is_active: true,
+  created_at: '2025-10-27T00:00:00Z',
+  updated_at: '2025-10-27T00:00:00Z',
+};
+
 const johnJaneConfig = {
   id: 'john-jane',
   brideName: 'Jane Wilson',
@@ -52,6 +64,12 @@ describe('Multi-Tenant API Integration Tests', () => {
     jest.clearAllMocks();
     // Mock fetch globally for these tests
     global.fetch = jest.fn();
+
+    // Default successful tenant validation
+    mockValidateTenantId.mockResolvedValue({
+      isValid: true,
+      tenantId: 'john-jane',
+    });
   });
 
   afterEach(() => {
@@ -60,16 +78,35 @@ describe('Multi-Tenant API Integration Tests', () => {
 
   describe('RSVP API Integration', () => {
     it('should submit RSVP through API for valid tenant', async () => {
-      mockValidateTenantExists.mockResolvedValue(true);
-      mockWriteRSVPData.mockResolvedValue(undefined);
+      const mockRSVPResponse = {
+        id: 1,
+        tenant_id: 'john-jane',
+        name: 'Test Guest',
+        relationship: 'Friend',
+        attendance: 'yes' as const,
+        message: 'Excited to celebrate!',
+        submitted_at: '2025-10-28T00:00:00.000Z',
+        created_at: '2025-10-28T00:00:00.000Z',
+        updated_at: '2025-10-28T00:00:00.000Z',
+      };
+
+      mockCreateRSVP.mockResolvedValue(mockRSVPResponse);
 
       // Mock successful API response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        status: 200,
+        status: 201,
         json: async () => ({
-          success: true,
           message: 'RSVP submitted successfully',
+          data: {
+            id: '1',
+            name: 'Test Guest',
+            relationship: 'Friend',
+            attendance: 'yes',
+            message: 'Excited to celebrate!',
+            submittedAt: '2025-10-28T00:00:00.000Z',
+          },
+          tenant: 'john-jane',
         }),
       });
 
@@ -80,7 +117,7 @@ describe('Multi-Tenant API Integration Tests', () => {
         message: 'Excited to celebrate!',
       };
 
-      const response = await fetch('/api/rsvp/tenant?tenant=john-jane', {
+      const response = await fetch('/api/rsvp?tenant=john-jane', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -91,26 +128,22 @@ describe('Multi-Tenant API Integration Tests', () => {
       const responseData = await response.json();
 
       expect(response.ok).toBe(true);
-      expect(response.status).toBe(200);
-      expect(responseData.success).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith(
-        '/api/rsvp/tenant?tenant=john-jane',
-        expect.objectContaining({
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(rsvpData),
-        })
-      );
+      expect(response.status).toBe(201);
+      expect(responseData.message).toBe('RSVP submitted successfully');
+      expect(responseData.data.name).toBe('Test Guest');
+      expect(responseData.tenant).toBe('john-jane');
     });
 
     it('should handle RSVP submission for invalid tenant', async () => {
       // Mock API error response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
-        status: 404,
-        json: async () => ({ error: 'Tenant not found' }),
+        status: 400,
+        json: async () => ({
+          error: 'Invalid tenant',
+          type: 'validation',
+          details: 'Tenant not found',
+        }),
       });
 
       const rsvpData = {
@@ -120,7 +153,7 @@ describe('Multi-Tenant API Integration Tests', () => {
         message: 'Test message',
       };
 
-      const response = await fetch('/api/rsvp/tenant?tenant=invalid-tenant', {
+      const response = await fetch('/api/rsvp?tenant=invalid-tenant', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,16 +164,21 @@ describe('Multi-Tenant API Integration Tests', () => {
       const responseData = await response.json();
 
       expect(response.ok).toBe(false);
-      expect(response.status).toBe(404);
-      expect(responseData.error).toBe('Tenant not found');
+      expect(response.status).toBe(400);
+      expect(responseData.error).toBe('Invalid tenant');
+      expect(responseData.type).toBe('validation');
     });
 
-    it('should handle RSVP submission errors', async () => {
+    it('should handle database errors during RSVP submission', async () => {
       // Mock API server error response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 500,
-        json: async () => ({ error: 'Internal server error' }),
+        json: async () => ({
+          error: 'Database operation failed',
+          type: 'database',
+          code: 'DB_CONNECTION_ERROR',
+        }),
       });
 
       const rsvpData = {
@@ -150,7 +188,7 @@ describe('Multi-Tenant API Integration Tests', () => {
         message: 'Test message',
       };
 
-      const response = await fetch('/api/rsvp/tenant?tenant=john-jane', {
+      const response = await fetch('/api/rsvp?tenant=john-jane', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,20 +200,23 @@ describe('Multi-Tenant API Integration Tests', () => {
 
       expect(response.ok).toBe(false);
       expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Internal server error');
+      expect(responseData.error).toBe('Database operation failed');
+      expect(responseData.type).toBe('database');
     });
   });
 
   describe('Configuration API Integration', () => {
     it('should fetch tenant configuration through API', async () => {
-      mockValidateTenantExists.mockResolvedValue(true);
-      mockGetTenantConfig.mockResolvedValue(johnJaneConfig);
+      mockGetTenant.mockResolvedValue(johnJaneDbTenant);
 
       // Mock successful API response
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
         status: 200,
-        json: async () => johnJaneConfig,
+        json: async () => ({
+          data: johnJaneConfig,
+          tenant: 'john-jane',
+        }),
       });
 
       const response = await fetch('/api/config/tenant?tenant=john-jane');
@@ -183,10 +224,11 @@ describe('Multi-Tenant API Integration Tests', () => {
 
       expect(response.ok).toBe(true);
       expect(response.status).toBe(200);
-      expect(responseData.id).toBe('john-jane');
-      expect(responseData.brideName).toBe('Jane Wilson');
-      expect(responseData.groomName).toBe('John Anderson');
-      expect(responseData.venue.name).toBe('Sunset Gardens');
+      expect(responseData.data.id).toBe('john-jane');
+      expect(responseData.data.brideName).toBe('Jane Wilson');
+      expect(responseData.data.groomName).toBe('John Anderson');
+      expect(responseData.data.venue.name).toBe('Sunset Gardens');
+      expect(responseData.tenant).toBe('john-jane');
     });
 
     it('should handle configuration fetch for invalid tenant', async () => {
@@ -194,7 +236,11 @@ describe('Multi-Tenant API Integration Tests', () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 404,
-        json: async () => ({ error: 'Tenant not found' }),
+        json: async () => ({
+          error: 'Tenant not found',
+          type: 'not_found',
+          code: 'TENANT_NOT_FOUND',
+        }),
       });
 
       const response = await fetch('/api/config/tenant?tenant=invalid-tenant');
@@ -203,6 +249,7 @@ describe('Multi-Tenant API Integration Tests', () => {
       expect(response.ok).toBe(false);
       expect(response.status).toBe(404);
       expect(responseData.error).toBe('Tenant not found');
+      expect(responseData.type).toBe('not_found');
     });
   });
 
@@ -232,12 +279,18 @@ describe('Multi-Tenant API Integration Tests', () => {
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          json: async () => johnJaneConfig,
+          json: async () => ({
+            data: johnJaneConfig,
+            tenant: 'john-jane',
+          }),
         })
         .mockResolvedValueOnce({
           ok: true,
           status: 200,
-          json: async () => garciaMartinezConfig,
+          json: async () => ({
+            data: garciaMartinezConfig,
+            tenant: 'garcia-martinez',
+          }),
         });
 
       // Fetch john-jane config
@@ -253,10 +306,10 @@ describe('Multi-Tenant API Integration Tests', () => {
       const garciaMartinezData = await garciaMartinezResponse.json();
 
       // Verify each tenant gets only their own data
-      expect(johnJaneData.id).toBe('john-jane');
-      expect(johnJaneData.brideName).toBe('Jane Wilson');
-      expect(garciaMartinezData.id).toBe('garcia-martinez');
-      expect(garciaMartinezData.brideName).toBe('Sofia Garcia');
+      expect(johnJaneData.data.id).toBe('john-jane');
+      expect(johnJaneData.data.brideName).toBe('Jane Wilson');
+      expect(garciaMartinezData.data.id).toBe('garcia-martinez');
+      expect(garciaMartinezData.data.brideName).toBe('Sofia Garcia');
 
       // Verify separate API calls were made
       expect(global.fetch).toHaveBeenCalledWith(
@@ -295,7 +348,10 @@ describe('Multi-Tenant API Integration Tests', () => {
             return {
               ok: true,
               status: 200,
-              json: async () => johnJaneConfig,
+              json: async () => ({
+                data: johnJaneConfig,
+                tenant: 'john-jane',
+              }),
             };
           }
         })
@@ -304,7 +360,10 @@ describe('Multi-Tenant API Integration Tests', () => {
             return {
               ok: true,
               status: 200,
-              json: async () => garciaMartinezConfig,
+              json: async () => ({
+                data: garciaMartinezConfig,
+                tenant: 'garcia-martinez',
+              }),
             };
           }
         });
@@ -321,8 +380,8 @@ describe('Multi-Tenant API Integration Tests', () => {
       // Both requests should succeed with correct data
       expect(johnJaneResponse.ok).toBe(true);
       expect(garciaMartinezResponse.ok).toBe(true);
-      expect(johnJaneData.id).toBe('john-jane');
-      expect(garciaMartinezData.id).toBe('garcia-martinez');
+      expect(johnJaneData.data.id).toBe('john-jane');
+      expect(garciaMartinezData.data.id).toBe('garcia-martinez');
     });
   });
 
@@ -389,7 +448,11 @@ describe('Multi-Tenant API Integration Tests', () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 400,
-        json: async () => ({ error: 'Tenant ID is required' }),
+        json: async () => ({
+          error: 'Tenant parameter is required',
+          type: 'validation',
+          details: 'Tenant ID must be provided',
+        }),
       });
 
       // Request without tenant parameter
@@ -398,7 +461,8 @@ describe('Multi-Tenant API Integration Tests', () => {
 
       expect(response.ok).toBe(false);
       expect(response.status).toBe(400);
-      expect(responseData.error).toBe('Tenant ID is required');
+      expect(responseData.error).toBe('Tenant parameter is required');
+      expect(responseData.type).toBe('validation');
     });
 
     it('should validate request body for RSVP submissions', async () => {
@@ -406,11 +470,16 @@ describe('Multi-Tenant API Integration Tests', () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 400,
-        json: async () => ({ error: 'Invalid request body' }),
+        json: async () => ({
+          error: 'Validation failed',
+          type: 'validation',
+          code: 'VALIDATION_ERROR',
+          details: ['Name is required', 'Attendance is required'],
+        }),
       });
 
       // Request with invalid body
-      const response = await fetch('/api/rsvp/tenant?tenant=john-jane', {
+      const response = await fetch('/api/rsvp?tenant=john-jane', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -422,7 +491,9 @@ describe('Multi-Tenant API Integration Tests', () => {
 
       expect(response.ok).toBe(false);
       expect(response.status).toBe(400);
-      expect(responseData.error).toBe('Invalid request body');
+      expect(responseData.error).toBe('Validation failed');
+      expect(responseData.type).toBe('validation');
+      expect(responseData.details).toContain('Name is required');
     });
   });
 });

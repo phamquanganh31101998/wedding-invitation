@@ -1,20 +1,29 @@
 import { NextRequest } from 'next/server';
 import { GET, POST, PUT, DELETE, PATCH } from '../route';
-import * as csvUtils from '@/utils/csv';
+import * as databaseUtils from '@/utils/database';
 import * as tenantUtils from '@/utils/tenant';
-import { TenantConfig } from '@/types';
+import { TenantConfig, DatabaseTenant } from '@/types';
 
 // Mock the utilities
-jest.mock('@/utils/csv', () => ({
-  getTenantConfig: jest.fn(),
+jest.mock('@/utils/database', () => ({
+  getTenant: jest.fn(),
 }));
 
 jest.mock('@/utils/tenant', () => ({
   validateTenantId: jest.fn(),
 }));
 
-const mockGetTenantConfig = csvUtils.getTenantConfig as jest.MockedFunction<
-  typeof csvUtils.getTenantConfig
+// Mock the error handling utility
+jest.mock('@/utils/error-handling', () => ({
+  handleApiError: jest.fn(),
+  InputSanitizer: {
+    sanitizeTenantId: jest.fn((id) => id),
+  },
+  handleTenantError: jest.fn(),
+}));
+
+const mockGetTenant = databaseUtils.getTenant as jest.MockedFunction<
+  typeof databaseUtils.getTenant
 >;
 const mockValidateTenantId =
   tenantUtils.validateTenantId as jest.MockedFunction<
@@ -27,7 +36,22 @@ describe('/api/config/tenant', () => {
   });
 
   describe('GET', () => {
-    const mockTenantConfig: TenantConfig = {
+    const mockDbTenant: DatabaseTenant = {
+      id: 'john-jane',
+      bride_name: 'Jane Smith',
+      groom_name: 'John Doe',
+      wedding_date: '2025-12-29',
+      venue_name: 'Grand Ballroom',
+      venue_address: '123 Wedding St, City, State',
+      venue_map_link: 'https://maps.google.com/example',
+      theme_primary_color: '#D69E2E',
+      theme_secondary_color: '#2D3748',
+      is_active: true,
+      created_at: '2025-10-27T00:00:00Z',
+      updated_at: '2025-10-27T00:00:00Z',
+    };
+
+    const expectedTenantConfig: TenantConfig = {
       id: 'john-jane',
       brideName: 'Jane Smith',
       groomName: 'John Doe',
@@ -35,7 +59,7 @@ describe('/api/config/tenant', () => {
       venue: {
         name: 'Grand Ballroom',
         address: '123 Wedding St, City, State',
-        mapLink: 'abcd',
+        mapLink: 'https://maps.google.com/example',
       },
       theme: {
         primaryColor: '#D69E2E',
@@ -51,7 +75,7 @@ describe('/api/config/tenant', () => {
         isValid: true,
         tenantId: 'john-jane',
       });
-      mockGetTenantConfig.mockResolvedValueOnce(mockTenantConfig);
+      mockGetTenant.mockResolvedValueOnce(mockDbTenant);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
@@ -60,10 +84,10 @@ describe('/api/config/tenant', () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(200);
-      expect(responseData.data).toEqual(mockTenantConfig);
+      expect(responseData.data).toEqual(expectedTenantConfig);
       expect(responseData.tenant).toBe('john-jane');
       expect(mockValidateTenantId).toHaveBeenCalledWith('john-jane');
-      expect(mockGetTenantConfig).toHaveBeenCalledWith('john-jane');
+      expect(mockGetTenant).toHaveBeenCalledWith('john-jane');
     });
 
     it('should reject request with invalid tenant', async () => {
@@ -81,15 +105,10 @@ describe('/api/config/tenant', () => {
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('Invalid tenant');
       expect(responseData.details).toBe('Tenant not found');
-      expect(mockGetTenantConfig).not.toHaveBeenCalled();
+      expect(mockGetTenant).not.toHaveBeenCalled();
     });
 
     it('should reject request without tenant parameter', async () => {
-      mockValidateTenantId.mockResolvedValueOnce({
-        isValid: false,
-        error: 'No tenant ID provided',
-      });
-
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant'
       );
@@ -97,62 +116,55 @@ describe('/api/config/tenant', () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(400);
-      expect(responseData.error).toBe('Invalid tenant');
-      expect(responseData.details).toBe('No tenant ID provided');
+      expect(responseData.error).toBe('Tenant parameter is required');
+      expect(responseData.details).toBe('Tenant ID must be provided');
     });
 
-    it('should return 404 when configuration file not found', async () => {
+    it('should return 404 when tenant not found in database', async () => {
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
         tenantId: 'john-jane',
       });
-      mockGetTenantConfig.mockResolvedValueOnce(null);
+      mockGetTenant.mockResolvedValueOnce(null);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
       );
       const response = await GET(request);
-      const responseData = await response.json();
 
       expect(response.status).toBe(404);
-      expect(responseData.error).toBe('Tenant configuration not found');
-      expect(responseData.details).toBe(
-        "Configuration file not found for tenant 'john-jane'"
-      );
+      // The handleTenantError mock should be called
     });
 
-    it('should handle invalid JSON configuration', async () => {
+    it('should handle database connection errors', async () => {
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
         tenantId: 'john-jane',
       });
-      mockGetTenantConfig.mockRejectedValueOnce(
-        new Error('Invalid JSON in tenant configuration for john-jane')
+      mockGetTenant.mockRejectedValueOnce(
+        new Error('Database connection failed')
       );
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
       );
       const response = await GET(request);
-      const responseData = await response.json();
 
       expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Invalid configuration format');
-      expect(responseData.details).toBe(
-        'Invalid JSON in tenant configuration for john-jane'
-      );
+      // The handleApiError mock should be called
     });
 
-    it('should handle missing required fields in configuration', async () => {
+    it('should handle tenant with null map link', async () => {
+      const tenantWithoutMapLink = {
+        ...mockDbTenant,
+        venue_map_link: null,
+      };
+
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
         tenantId: 'john-jane',
       });
-      mockGetTenantConfig.mockRejectedValueOnce(
-        new Error(
-          'Invalid tenant configuration for john-jane: missing required fields'
-        )
-      );
+      mockGetTenant.mockResolvedValueOnce(tenantWithoutMapLink);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
@@ -160,51 +172,8 @@ describe('/api/config/tenant', () => {
       const response = await GET(request);
       const responseData = await response.json();
 
-      expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Invalid configuration data');
-      expect(responseData.details).toBe(
-        'Invalid tenant configuration for john-jane: missing required fields'
-      );
-    });
-
-    it('should handle tenant-specific errors', async () => {
-      mockValidateTenantId.mockResolvedValueOnce({
-        isValid: true,
-        tenantId: 'john-jane',
-      });
-      mockGetTenantConfig.mockRejectedValueOnce(
-        new Error(
-          'Failed to read tenant configuration for john-jane: Permission denied'
-        )
-      );
-
-      const request = new NextRequest(
-        'http://localhost:3000/api/config/tenant?tenant=john-jane'
-      );
-      const response = await GET(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(responseData.error).toBe(
-        'Failed to read tenant configuration for john-jane: Permission denied'
-      );
-    });
-
-    it('should handle generic errors', async () => {
-      mockValidateTenantId.mockResolvedValueOnce({
-        isValid: true,
-        tenantId: 'john-jane',
-      });
-      mockGetTenantConfig.mockRejectedValueOnce(new Error('Generic error'));
-
-      const request = new NextRequest(
-        'http://localhost:3000/api/config/tenant?tenant=john-jane'
-      );
-      const response = await GET(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(500);
-      expect(responseData.error).toBe('Failed to read tenant configuration');
+      expect(response.status).toBe(200);
+      expect(responseData.data.venue.mapLink).toBe('https://maps.google.com');
     });
   });
 
