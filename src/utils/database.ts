@@ -174,4 +174,39 @@ export async function getRSVPs(tenantId: string) {
   }
 }
 
+export async function getRSVPById(tenantId: string, rsvpId: string) {
+  await ensureInitialized();
+
+  try {
+    const result = await sql`
+      SELECT id, name, relationship, attendance, message, submitted_at
+      FROM rsvps 
+      WHERE tenant_id = ${tenantId} AND id = ${parseInt(rsvpId)}
+    `;
+    return result[0] || null;
+  } catch (error) {
+    console.error('Failed to get RSVP by ID:', error);
+    throw new Error(`Failed to get RSVP by ID: ${error}`);
+  }
+}
+
+export async function getRSVPStats(tenantId: string) {
+  await ensureInitialized();
+
+  try {
+    const result = await sql`
+      SELECT 
+        attendance,
+        COUNT(*) as count
+      FROM rsvps 
+      WHERE tenant_id = ${tenantId}
+      GROUP BY attendance
+    `;
+    return result;
+  } catch (error) {
+    console.error('Failed to get RSVP stats:', error);
+    throw new Error(`Failed to get RSVP stats: ${error}`);
+  }
+}
+
 export { sql };

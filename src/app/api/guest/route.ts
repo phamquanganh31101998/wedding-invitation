@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readRSVPData, readTenantRSVPData } from '@/utils/csv';
+import { getRSVPById } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
+import { RSVPData } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,8 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let rsvpData;
-    let tenantId: string | null = null;
+    let tenantId = 'default'; // Default tenant
 
     // Check if tenant parameter is provided
     if (tenantParam) {
@@ -32,20 +32,28 @@ export async function GET(request: NextRequest) {
         );
       }
       tenantId = tenantValidation.tenantId as string;
-      rsvpData = await readTenantRSVPData(tenantId);
-    } else {
-      rsvpData = await readRSVPData();
     }
 
-    const guest = rsvpData.find((record) => record.id === id);
+    // Get specific RSVP by ID and tenant from database
+    const dbRsvp = await getRSVPById(tenantId, id);
 
-    if (!guest) {
+    if (!dbRsvp) {
       return NextResponse.json({ error: 'Guest not found' }, { status: 404 });
     }
 
+    // Transform database response to match frontend expectations
+    const guest: RSVPData = {
+      id: dbRsvp.id.toString(),
+      name: dbRsvp.name,
+      relationship: dbRsvp.relationship,
+      attendance: dbRsvp.attendance,
+      message: dbRsvp.message || '',
+      submittedAt: dbRsvp.submitted_at,
+    };
+
     const response = {
       data: guest,
-      ...(tenantId && { tenant: tenantId }),
+      ...(tenantParam && { tenant: tenantId }),
     };
 
     return NextResponse.json(response);

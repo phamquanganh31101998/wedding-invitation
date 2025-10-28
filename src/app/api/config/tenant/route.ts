@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenantConfig } from '@/utils/csv';
+import { getTenant } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
+import { DatabaseTenant, TenantConfig } from '@/types';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,18 +22,38 @@ export async function GET(request: NextRequest) {
 
     const tenantId = tenantValidation.tenantId as string;
 
-    // Get tenant configuration
-    const config = await getTenantConfig(tenantId);
+    // Get tenant configuration from database
+    const dbTenant = await getTenant(tenantId);
 
-    if (!config) {
+    if (!dbTenant) {
       return NextResponse.json(
         {
           error: 'Tenant configuration not found',
-          details: `Configuration file not found for tenant '${tenantId}'`,
+          details: `Tenant '${tenantId}' not found in database`,
         },
         { status: 404 }
       );
     }
+
+    // Transform database response to match frontend expectations
+    const config: TenantConfig = {
+      id: dbTenant.id,
+      brideName: dbTenant.bride_name,
+      groomName: dbTenant.groom_name,
+      weddingDate: dbTenant.wedding_date,
+      venue: {
+        name: dbTenant.venue_name,
+        address: dbTenant.venue_address,
+        mapLink: dbTenant.venue_map_link || 'https://maps.google.com',
+      },
+      theme: {
+        primaryColor: dbTenant.theme_primary_color,
+        secondaryColor: dbTenant.theme_secondary_color,
+      },
+      isActive: dbTenant.is_active,
+      createdAt: dbTenant.created_at,
+      updatedAt: dbTenant.updated_at,
+    };
 
     // Return read-only configuration data
     return NextResponse.json({

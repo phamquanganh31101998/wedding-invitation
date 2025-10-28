@@ -1,18 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  writeRSVPData,
-  readRSVPData,
-  getNextRSVPId,
-  findRSVPById,
-  updateRSVPData,
-  writeTenantRSVPData,
-  readTenantRSVPData,
-  getTenantNextRSVPId,
-  findTenantRSVPById,
-  updateTenantRSVPData,
-} from '@/utils/csv';
+import { createRSVP, getRSVPs, getTenant } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
-import { RSVPData } from '@/types';
+import { RSVPData, DatabaseRSVP } from '@/types';
 import * as yup from 'yup';
 
 import { rsvpValidationSchema } from './validation';
@@ -21,7 +10,6 @@ export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tenantParam = searchParams.get('tenant');
-    const guestId = searchParams.get('id');
     const body = await request.json();
 
     // Validate request body using Yup
@@ -30,9 +18,7 @@ export async function POST(request: NextRequest) {
       stripUnknown: true, // Remove unknown fields
     });
 
-    let rsvpData: RSVPData;
-    let isUpdate = false;
-    let tenantId: string | null = null;
+    let tenantId = 'default'; // Default tenant
 
     // Check if tenant parameter is provided
     if (tenantParam) {
@@ -50,81 +36,32 @@ export async function POST(request: NextRequest) {
       tenantId = tenantValidation.tenantId as string;
     }
 
-    if (guestId) {
-      // Check if guest exists
-      const existingGuest = tenantId
-        ? await findTenantRSVPById(tenantId, guestId)
-        : await findRSVPById(guestId);
+    // Create new RSVP record in database
+    const dbRsvp = await createRSVP({
+      tenantId,
+      name: validatedData.name,
+      relationship: validatedData.relationship,
+      attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+      message: validatedData.message || undefined,
+    });
 
-      if (existingGuest) {
-        // Update existing record
-        rsvpData = {
-          ...existingGuest,
-          name: validatedData.name,
-          relationship: validatedData.relationship,
-          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
-          message: validatedData.message || '',
-          submittedAt: new Date().toISOString(),
-        };
-
-        if (tenantId) {
-          await updateTenantRSVPData(tenantId, rsvpData);
-        } else {
-          await updateRSVPData(rsvpData);
-        }
-        isUpdate = true;
-      } else {
-        const nextId = tenantId
-          ? await getTenantNextRSVPId(tenantId)
-          : await getNextRSVPId();
-
-        // Create new record with specified ID
-        rsvpData = {
-          id: nextId,
-          name: validatedData.name,
-          relationship: validatedData.relationship,
-          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
-          message: validatedData.message || '',
-          submittedAt: new Date().toISOString(),
-        };
-
-        if (tenantId) {
-          await writeTenantRSVPData(tenantId, rsvpData);
-        } else {
-          await writeRSVPData(rsvpData);
-        }
-      }
-    } else {
-      // Create new record with auto-generated ID
-      const nextId = tenantId
-        ? await getTenantNextRSVPId(tenantId)
-        : await getNextRSVPId();
-
-      rsvpData = {
-        id: nextId,
-        name: validatedData.name,
-        relationship: validatedData.relationship,
-        attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
-        message: validatedData.message || '',
-        submittedAt: new Date().toISOString(),
-      };
-
-      if (tenantId) {
-        await writeTenantRSVPData(tenantId, rsvpData);
-      } else {
-        await writeRSVPData(rsvpData);
-      }
-    }
-
-    const response = {
-      message: isUpdate
-        ? 'RSVP updated successfully'
-        : 'RSVP submitted successfully',
-      data: rsvpData,
-      ...(tenantId && { tenant: tenantId }),
+    // Transform database response to match frontend expectations
+    const rsvpData: RSVPData = {
+      id: dbRsvp.id.toString(),
+      name: dbRsvp.name,
+      relationship: dbRsvp.relationship,
+      attendance: dbRsvp.attendance,
+      message: dbRsvp.message || '',
+      submittedAt: dbRsvp.submitted_at,
     };
 
-    return NextResponse.json(response, { status: isUpdate ? 200 : 201 });
+    const response = {
+      message: 'RSVP submitted successfully',
+      data: rsvpData,
+      ...(tenantParam && { tenant: tenantId }),
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error('Error submitting RSVP:', error);
 
@@ -139,20 +76,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Handle specific CSV writing errors
+    // Handle database errors
     if (error instanceof Error) {
-      if (
-        error.message.includes('ENOENT') ||
-        error.message.includes('permission')
-      ) {
-        return NextResponse.json(
-          { error: 'Failed to save RSVP data - file system error' },
-          { status: 500 }
-        );
-      }
-
       if (error.message.includes('tenant')) {
         return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+
+      if (error.message.includes('Database')) {
+        return NextResponse.json(
+          { error: 'Failed to save RSVP data - database error' },
+          { status: 500 }
+        );
       }
     }
 
@@ -168,8 +102,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const tenantParam = searchParams.get('tenant');
 
-    let rsvpData;
-    let tenantId: string | null = null;
+    let tenantId = 'default'; // Default tenant
 
     // Check if tenant parameter is provided
     if (tenantParam) {
@@ -185,15 +118,25 @@ export async function GET(request: NextRequest) {
         );
       }
       tenantId = tenantValidation.tenantId as string;
-      rsvpData = await readTenantRSVPData(tenantId);
-    } else {
-      rsvpData = await readRSVPData();
     }
+
+    // Get RSVPs from database
+    const dbRsvps = await getRSVPs(tenantId);
+
+    // Transform database response to match frontend expectations
+    const rsvpData: RSVPData[] = dbRsvps.map((dbRsvp: DatabaseRSVP) => ({
+      id: dbRsvp.id.toString(),
+      name: dbRsvp.name,
+      relationship: dbRsvp.relationship,
+      attendance: dbRsvp.attendance,
+      message: dbRsvp.message || '',
+      submittedAt: dbRsvp.submitted_at,
+    }));
 
     const response = {
       data: rsvpData,
       count: rsvpData.length,
-      ...(tenantId && { tenant: tenantId }),
+      ...(tenantParam && { tenant: tenantId }),
     };
 
     return NextResponse.json(response);

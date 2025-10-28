@@ -1,4 +1,4 @@
-import { validateTenantExists } from './csv';
+import { getTenant } from './database';
 
 /**
  * Extracts tenant ID from URL pathname
@@ -67,9 +67,9 @@ export async function validateTenantId(tenantId: string | null): Promise<{
   }
 
   try {
-    // Check if tenant exists and is active
-    const exists = await validateTenantExists(tenantId);
-    if (!exists) {
+    // Check if tenant exists and is active in database
+    const tenant = await getTenant(tenantId);
+    if (!tenant || !tenant.is_active) {
       return {
         isValid: false,
         error: `Tenant '${tenantId}' not found or inactive.`,
