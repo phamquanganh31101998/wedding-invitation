@@ -16,9 +16,9 @@ import { validateTenantId } from '@/utils/tenant';
 import Link from 'next/link';
 
 interface TenantPageProps {
-  params: {
+  params: Promise<{
     tenant: string;
-  };
+  }>;
 }
 
 function LoadingFallback() {
@@ -69,7 +69,7 @@ function TenantErrorFallback({
 }
 
 export default async function TenantPage({ params }: TenantPageProps) {
-  const { tenant: tenantId } = params;
+  const { tenant: tenantId } = await params;
 
   // Validate tenant ID format and existence
   const validation = await validateTenantId(tenantId);
@@ -93,7 +93,7 @@ export default async function TenantPage({ params }: TenantPageProps) {
 
 // Generate metadata for the tenant page
 export async function generateMetadata({ params }: TenantPageProps) {
-  const { tenant: tenantId } = params;
+  const { tenant: tenantId } = await params;
 
   // Basic validation for metadata generation
   if (!tenantId || !/^[a-zA-Z0-9-_]+$/.test(tenantId)) {
