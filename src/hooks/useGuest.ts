@@ -9,7 +9,14 @@ interface UseGuestReturn {
   error: string | null;
 }
 
-export function useGuest(id: string | null): UseGuestReturn {
+interface UseGuestOptions {
+  tenantId?: string | null;
+}
+
+export function useGuest(
+  id: string | null,
+  options?: UseGuestOptions
+): UseGuestReturn {
   const [guest, setGuest] = useState<RSVPData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +34,13 @@ export function useGuest(id: string | null): UseGuestReturn {
       setError(null);
 
       try {
-        const response = await fetch(`/api/guest?id=${encodeURIComponent(id)}`);
+        // Build URL with tenant parameter if provided
+        let url = `/api/guest?id=${encodeURIComponent(id)}`;
+        if (options?.tenantId) {
+          url += `&tenant=${encodeURIComponent(options.tenantId)}`;
+        }
+
+        const response = await fetch(url);
 
         if (response.ok) {
           const result = await response.json();
@@ -48,7 +61,7 @@ export function useGuest(id: string | null): UseGuestReturn {
     };
 
     fetchGuest();
-  }, [id]);
+  }, [id, options?.tenantId]);
 
   return { guest, loading, error };
 }

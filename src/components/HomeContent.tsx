@@ -24,13 +24,13 @@ const DEFAULT_TARGET_DATE = new Date('2025-12-29');
 export default function HomeContent() {
   const searchParams = useSearchParams();
   const guestId = searchParams.get('id');
-  const { guest, loading } = useGuest(guestId);
   const {
     tenantId,
     config,
     isLoading: tenantLoading,
     error: tenantError,
   } = useTenant();
+  const { guest, loading } = useGuest(guestId, { tenantId });
 
   const guestName = guest?.name || '';
   const guestGreeting = guestName ? `Xin chào ${guestName}. ` : 'Xin chào. ';

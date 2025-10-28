@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tenantId = tenantValidation.tenantId!;
+    const tenantId = tenantValidation.tenantId as string;
 
     // Get tenant configuration
     const config = await getTenantConfig(tenantId);
