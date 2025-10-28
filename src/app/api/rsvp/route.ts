@@ -1,18 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRSVP, getRSVPs } from '@/utils/database';
+import {
+  createRSVP,
+  getRSVPs,
+  getRSVPById,
+  updateRSVP,
+} from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
 import { RSVPData } from '@/types';
 
 interface DatabaseRecord {
   [key: string]: unknown;
 }
-import { rsvpValidationSchema, tenantIdValidationSchema } from './validation';
+import {
+  rsvpValidationSchema,
+  tenantIdValidationSchema,
+  guestIdValidationSchema,
+} from './validation';
 import { handleApiError, InputSanitizer } from '@/utils/error-handling';
 
 export async function POST(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const tenantParam = searchParams.get('tenant');
+    const guestParam = searchParams.get('guest');
     const body = await request.json();
 
     // Sanitize and validate tenant parameter
@@ -40,6 +50,28 @@ export async function POST(request: NextRequest) {
       tenantId = tenantValidation.tenantId as string;
     }
 
+    // Sanitize and validate guest ID if provided
+    let guestId: string | null = null;
+    if (guestParam) {
+      const sanitizedGuestId = InputSanitizer.sanitizeNumericId(guestParam);
+      if (!sanitizedGuestId) {
+        return NextResponse.json(
+          {
+            error: 'Invalid guest ID',
+            type: 'validation',
+            details: 'Guest ID must be a valid positive number',
+          },
+          { status: 400 }
+        );
+      }
+
+      // Validate guest ID format
+      await guestIdValidationSchema.validate({
+        id: sanitizedGuestId.toString(),
+      });
+      guestId = sanitizedGuestId.toString();
+    }
+
     // Sanitize input data
     const sanitizedBody = {
       name: InputSanitizer.sanitizeString(body.name || ''),
@@ -54,14 +86,43 @@ export async function POST(request: NextRequest) {
       stripUnknown: true,
     });
 
-    // Create new RSVP record in database
-    const dbRsvp = await createRSVP({
-      tenantId,
-      name: validatedData.name,
-      relationship: validatedData.relationship,
-      attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
-      message: validatedData.message || undefined,
-    });
+    let dbRsvp: DatabaseRecord;
+    let isUpdate = false;
+
+    // Determine if this is create or update operation
+    if (guestId) {
+      // Check if guest exists
+      const existingGuest = await getRSVPById(tenantId, guestId);
+
+      if (existingGuest) {
+        // Case: Update existing guest
+        dbRsvp = await updateRSVP(tenantId, guestId, {
+          name: validatedData.name,
+          relationship: validatedData.relationship,
+          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+          message: validatedData.message || undefined,
+        });
+        isUpdate = true;
+      } else {
+        // Case: Guest ID provided but guest not found -> Create new
+        dbRsvp = await createRSVP({
+          tenantId,
+          name: validatedData.name,
+          relationship: validatedData.relationship,
+          attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+          message: validatedData.message || undefined,
+        });
+      }
+    } else {
+      // Case: No guest ID provided -> Create new
+      dbRsvp = await createRSVP({
+        tenantId,
+        name: validatedData.name,
+        relationship: validatedData.relationship,
+        attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
+        message: validatedData.message || undefined,
+      });
+    }
 
     // Transform database response to match frontend expectations
     const rsvpData: RSVPData = {
@@ -74,12 +135,14 @@ export async function POST(request: NextRequest) {
     };
 
     const response = {
-      message: 'RSVP submitted successfully',
+      message: isUpdate
+        ? 'RSVP updated successfully'
+        : 'RSVP submitted successfully',
       data: rsvpData,
       ...(tenantParam && { tenant: tenantId }),
     };
 
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(response, { status: isUpdate ? 200 : 201 });
   } catch (error) {
     console.error('Error submitting RSVP:', error);
     return handleApiError(error);

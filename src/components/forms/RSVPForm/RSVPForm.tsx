@@ -69,7 +69,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
       }
 
       if (guestId) {
-        params.append('id', guestId);
+        params.append('guest', guestId);
       }
 
       if (params.toString()) {

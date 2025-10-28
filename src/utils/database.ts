@@ -219,6 +219,38 @@ export async function getRSVPById(tenantId: string, rsvpId: string) {
   }
 }
 
+export async function updateRSVP(
+  tenantId: string,
+  rsvpId: string,
+  rsvpData: {
+    name: string;
+    relationship: string;
+    attendance: 'yes' | 'no' | 'maybe';
+    message?: string;
+  }
+) {
+  const db = ensureDatabaseConnection();
+  await ensureInitialized();
+
+  try {
+    const result = await db`
+      UPDATE rsvps 
+      SET 
+        name = ${rsvpData.name},
+        relationship = ${rsvpData.relationship},
+        attendance = ${rsvpData.attendance},
+        message = ${rsvpData.message || null},
+        updated_at = CURRENT_TIMESTAMP
+      WHERE tenant_id = ${tenantId} AND id = ${parseInt(rsvpId)}
+      RETURNING *
+    `;
+    return (result as DatabaseRecord[])[0];
+  } catch (error) {
+    console.error('Failed to update RSVP:', error);
+    throw new Error(`Failed to update RSVP: ${error}`);
+  }
+}
+
 export async function getRSVPStats(tenantId: string) {
   const db = ensureDatabaseConnection();
   await ensureInitialized();
