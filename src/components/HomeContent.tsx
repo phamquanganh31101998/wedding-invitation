@@ -41,6 +41,7 @@ export default function HomeContent() {
   const weddingDate = config?.weddingDate || '[Wedding Date]';
   const venueName = config?.venue?.name || '[Venue Location]';
   const venueAddress = config?.venue?.address || '';
+  const venueMapLink = config?.venue?.mapLink || '';
   const targetDate = config?.weddingDate
     ? new Date(config.weddingDate)
     : DEFAULT_TARGET_DATE;
@@ -63,7 +64,11 @@ export default function HomeContent() {
     <Layout
       extraContent={
         <Container pb={8}>
-          <MapSection />
+          <MapSection
+            title={venueName}
+            address={venueAddress}
+            embedUrl={venueMapLink}
+          />
         </Container>
       }
     >
