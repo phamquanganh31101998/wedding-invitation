@@ -4,26 +4,71 @@ import Layout from '@/components/layout/Layout';
 import { FloatingMusicButton } from '@/components/music/MusicPlayer';
 import CountdownSection from '@/components/section/CountdownSection';
 import RSVPSection from '@/components/section/RSVPSection';
-import { VStack, Text, Box, Spinner, Container } from '@chakra-ui/react';
+import {
+  VStack,
+  Text,
+  Box,
+  Spinner,
+  Container,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+} from '@chakra-ui/react';
 import { useSearchParams } from 'next/navigation';
 import { useGuest } from '@/hooks/useGuest';
+import { useTenant } from '@/components/providers/TenantProvider';
 import MapSection from '@/components/section/MapSection';
 
-const TARGET_DATE = new Date('2025-12-29');
+const DEFAULT_TARGET_DATE = new Date('2025-12-29');
 
 export default function HomeContent() {
   const searchParams = useSearchParams();
   const guestId = searchParams.get('id');
-  const { guest, loading } = useGuest(guestId);
+  const {
+    tenantId,
+    config,
+    isLoading: tenantLoading,
+    error: tenantError,
+  } = useTenant();
+  const { guest, loading } = useGuest(guestId, { tenantId });
 
   const guestName = guest?.name || '';
   const guestGreeting = guestName ? `Xin chào ${guestName}. ` : 'Xin chào. ';
+
+  // Use tenant-specific data if available, otherwise fall back to defaults
+  const brideName = config?.brideName || '[Bride Name]';
+  const groomName = config?.groomName || '[Groom Name]';
+  const weddingDate = config?.weddingDate || '[Wedding Date]';
+  const venueName = config?.venue?.name || '[Venue Location]';
+  const venueAddress = config?.venue?.address || '';
+  const venueMapLink = config?.venue?.mapLink || '';
+  const targetDate = config?.weddingDate
+    ? new Date(config.weddingDate)
+    : DEFAULT_TARGET_DATE;
+
+  // Show tenant error if there's an issue loading tenant data
+  if (tenantError) {
+    return (
+      <Layout>
+        <Container maxW="container.md" py={12}>
+          <Alert status="error" borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>{tenantError}</AlertDescription>
+          </Alert>
+        </Container>
+      </Layout>
+    );
+  }
 
   return (
     <Layout
       extraContent={
         <Container pb={8}>
-          <MapSection />
+          <MapSection
+            title={venueName}
+            address={venueAddress}
+            embedUrl={venueMapLink}
+          />
         </Container>
       }
     >
@@ -36,7 +81,7 @@ export default function HomeContent() {
             mb={4}
             lineHeight="shorter"
           >
-            {loading ? (
+            {loading || tenantLoading ? (
               <>
                 <Spinner size="sm" mr={2} />
                 Đang tải...
@@ -46,10 +91,11 @@ export default function HomeContent() {
             )}
           </Text>
           <Text fontSize={{ base: 'xl', sm: '2xl' }} color="gray.600" mb={2}>
-            [Bride Name] & [Groom Name]
+            {brideName} & {groomName}
           </Text>
           <Text fontSize={{ base: 'lg', sm: 'xl' }} color="gray.500">
-            [Wedding Date] • [Venue Location]
+            {weddingDate} • {venueName}
+            {venueAddress && `, ${venueAddress}`}
           </Text>
         </Box>
 
@@ -60,9 +106,9 @@ export default function HomeContent() {
         </Text>
 
         {/* Countdown Timer with Error Boundary */}
-        <CountdownSection targetDate={TARGET_DATE} />
+        <CountdownSection targetDate={targetDate} />
 
-        <RSVPSection guestId={guestId} guest={guest} />
+        <RSVPSection guestId={guestId} guest={guest} tenantId={tenantId} />
 
         <FloatingMusicButton />
       </VStack>

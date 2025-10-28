@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ChakraProviders } from '@/components/providers/ChakraProviders';
 import { ReduxProvider } from '@/components/providers/ReduxProvider';
+import { TenantProvider } from '@/components/providers/TenantProvider';
 import { AudioProvider } from '@/components/music/MusicPlayer';
 import './globals.css';
 
@@ -32,7 +33,9 @@ export default function RootLayout({
       >
         <ReduxProvider>
           <ChakraProviders>
-            <AudioProvider>{children}</AudioProvider>
+            <TenantProvider>
+              <AudioProvider>{children}</AudioProvider>
+            </TenantProvider>
           </ChakraProviders>
         </ReduxProvider>
       </body>

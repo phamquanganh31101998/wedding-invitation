@@ -22,6 +22,7 @@ import AttendanceField from './AttendanceField';
 interface RSVPFormProps {
   guestId?: string | null;
   initialData?: RSVPData | null;
+  tenantId?: string | null;
   onSuccess?: (data: RSVPData) => void;
   onError?: (error: string) => void;
 }
@@ -34,6 +35,7 @@ interface FormState {
 const RSVPForm: React.FC<RSVPFormProps> = ({
   guestId,
   initialData,
+  tenantId,
   onSuccess,
   onError,
 }) => {
@@ -58,9 +60,22 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
     setFormState((prev) => ({ ...prev, submitError: null }));
 
     try {
-      const url = guestId
-        ? `/api/rsvp?id=${encodeURIComponent(guestId)}`
-        : '/api/rsvp';
+      // Build URL with tenant context and guest ID
+      let url = '/api/rsvp';
+      const params = new URLSearchParams();
+
+      if (tenantId) {
+        params.append('tenant', tenantId);
+      }
+
+      if (guestId) {
+        params.append('id', guestId);
+      }
+
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {

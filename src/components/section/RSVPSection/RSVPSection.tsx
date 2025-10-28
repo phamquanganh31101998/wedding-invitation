@@ -1,15 +1,20 @@
 'use client';
 
 import { VStack, Text, Box } from '@chakra-ui/react';
-import { RSVPForm } from '@/components/forms/RSVPForm';
+import RSVPForm from '@/components/forms/RSVPForm/RSVPForm';
 import { RSVPData } from '@/types';
 
 interface RSVPSectionProps {
   guestId?: string | null;
   guest?: RSVPData | null;
+  tenantId?: string | null;
 }
 
-export default function RSVPSection({ guestId, guest }: RSVPSectionProps) {
+export default function RSVPSection({
+  guestId,
+  guest,
+  tenantId,
+}: RSVPSectionProps) {
   return (
     <VStack spacing={8}>
       <Box>
@@ -19,7 +24,7 @@ export default function RSVPSection({ guestId, guest }: RSVPSectionProps) {
         </Text>
       </Box>
 
-      <RSVPForm guestId={guestId} initialData={guest} />
+      <RSVPForm guestId={guestId} initialData={guest} tenantId={tenantId} />
     </VStack>
   );
 }
