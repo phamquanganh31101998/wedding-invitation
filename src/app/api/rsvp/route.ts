@@ -12,7 +12,7 @@ interface DatabaseRecord {
 }
 import {
   rsvpValidationSchema,
-  tenantIdValidationSchema,
+  tenantSlugValidationSchema,
   guestIdValidationSchema,
 } from './validation';
 import { handleApiError, InputSanitizer } from '@/utils/error-handling';
@@ -25,13 +25,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Get tenant database ID from slug
-    let tenantDbId = 1; // Default tenant database ID
+    let tenantId = 0;
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
       // Validate tenant parameter format
-      await tenantIdValidationSchema.validate({
-        tenantId: sanitizedTenantParam,
+      await tenantSlugValidationSchema.validate({
+        tenantSlug: sanitizedTenantParam,
       });
 
       // Get tenant by slug to get database ID
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      tenantDbId = tenant.id as number;
+      tenantId = tenant.id as number;
     }
 
     // Sanitize and validate guest ID if provided
@@ -91,11 +91,11 @@ export async function POST(request: NextRequest) {
     // Determine if this is create or update operation
     if (guestId) {
       // Check if guest exists
-      const existingGuest = await getGuestById(tenantDbId, guestId);
+      const existingGuest = await getGuestById(tenantId, guestId);
 
       if (existingGuest) {
         // Case: Update existing guest
-        dbRsvp = await updateGuest(tenantDbId, guestId, {
+        dbRsvp = await updateGuest(tenantId, guestId, {
           name: validatedData.name,
           relationship: validatedData.relationship,
           attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       } else {
         // Case: Guest ID provided but guest not found -> Create new
         dbRsvp = await createGuest({
-          tenantId: tenantDbId,
+          tenantId,
           name: validatedData.name,
           relationship: validatedData.relationship,
           attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Case: No guest ID provided -> Create new
       dbRsvp = await createGuest({
-        tenantId: tenantDbId,
+        tenantId,
         name: validatedData.name,
         relationship: validatedData.relationship,
         attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',

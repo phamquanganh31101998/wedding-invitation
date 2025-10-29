@@ -3,7 +3,7 @@ import { getGuestById, getTenantBySlug } from '@/utils/database';
 import { RSVPData } from '@/types';
 import {
   guestIdValidationSchema,
-  tenantIdValidationSchema,
+  tenantSlugValidationSchema,
 } from '../rsvp/validation';
 import {
   handleApiError,
@@ -51,8 +51,8 @@ export async function GET(request: NextRequest) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
       // Validate tenant parameter format
-      await tenantIdValidationSchema.validate({
-        tenantId: sanitizedTenantParam,
+      await tenantSlugValidationSchema.validate({
+        tenantSlug: sanitizedTenantParam,
       });
 
       // Get tenant by slug to get database ID

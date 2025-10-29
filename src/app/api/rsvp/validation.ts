@@ -91,9 +91,9 @@ export const rsvpValidationSchema = yup.object({
     ),
 });
 
-// Tenant slug validation schema (renamed from tenantId for clarity)
-export const tenantIdValidationSchema = yup.object({
-  tenantId: yup
+// Tenant slug validation schema
+export const tenantSlugValidationSchema = yup.object({
+  tenantSlug: yup
     .string()
     .required('Tenant slug is required')
     .trim()
@@ -124,9 +124,6 @@ export const tenantIdValidationSchema = yup.object({
       }
     ),
 });
-
-// Alias for backward compatibility
-export const tenantSlugValidationSchema = tenantIdValidationSchema;
 
 // Guest ID validation for API endpoints
 export const guestIdValidationSchema = yup.object({

@@ -23,7 +23,7 @@ const DEFAULT_TARGET_DATE = new Date('2025-12-29');
 
 export default function HomeContent() {
   const searchParams = useSearchParams();
-  const guestId = searchParams.get('id');
+  const guestId = searchParams.get('guest');
   const {
     tenantSlug,
     config,

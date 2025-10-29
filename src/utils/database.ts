@@ -114,22 +114,6 @@ async function ensureDefaultTenant() {
   }
 }
 
-export async function getTenant(tenantId: number) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      SELECT * FROM tenants 
-      WHERE id = ${tenantId} AND is_active = true
-    `;
-    return (result as DatabaseRecord[])[0] || null;
-  } catch (error) {
-    console.error('Failed to get tenant:', error);
-    throw new Error(`Failed to get tenant: ${error}`);
-  }
-}
-
 export async function getTenantBySlug(slug: string) {
   const db = ensureDatabaseConnection();
   await ensureInitialized();
@@ -218,34 +202,6 @@ export async function updateGuest(
     console.error('Failed to update guest:', error);
     throw new Error(`Failed to update guest: ${error}`);
   }
-}
-
-// Backward compatibility functions (deprecated - use guest functions instead)
-export async function createRSVP(rsvpData: {
-  tenantId: number;
-  name: string;
-  relationship: string;
-  attendance: 'yes' | 'no' | 'maybe';
-  message?: string;
-}) {
-  return createGuest(rsvpData);
-}
-
-export async function getRSVPById(tenantId: number, rsvpId: number) {
-  return getGuestById(tenantId, rsvpId);
-}
-
-export async function updateRSVP(
-  tenantId: number,
-  rsvpId: number,
-  rsvpData: {
-    name: string;
-    relationship: string;
-    attendance: 'yes' | 'no' | 'maybe';
-    message?: string;
-  }
-) {
-  return updateGuest(tenantId, rsvpId, rsvpData);
 }
 
 export { sql };

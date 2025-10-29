@@ -1,5 +1,5 @@
 import { getTenantBySlug } from './database';
-import { TenantValidationResult, TenantSlugLookup } from '@/types';
+import { TenantValidationResult } from '@/types';
 
 /**
  * Extracts tenant slug from URL pathname
@@ -89,38 +89,6 @@ export async function validateTenantSlug(
 }
 
 /**
- * Converts a tenant slug to database ID
- */
-export async function getTenanIdBySlug(
-  slug: string
-): Promise<TenantSlugLookup> {
-  try {
-    const tenant = await getTenantBySlug(slug);
-    if (!tenant || !tenant.is_active) {
-      return {
-        tenantId: null,
-        slug,
-        isValid: false,
-        error: `Tenant '${slug}' not found or inactive.`,
-      };
-    }
-
-    return {
-      tenantId: tenant.id as number,
-      slug,
-      isValid: true,
-    };
-  } catch (error) {
-    return {
-      tenantId: null,
-      slug,
-      isValid: false,
-      error: `Error looking up tenant: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    };
-  }
-}
-
-/**
  * Gets the default tenant slug for fallback scenarios
  */
 export function getDefaultTenantId(): string {
@@ -128,24 +96,10 @@ export function getDefaultTenantId(): string {
 }
 
 /**
- * Gets the default tenant database ID
- */
-export function getDefaultTenantDbId(): number {
-  return 1;
-}
-
-/**
  * Checks if a tenant slug is the default tenant
  */
 export function isDefaultTenant(tenantSlug: string | null): boolean {
   return tenantSlug === getDefaultTenantId() || tenantSlug === null;
-}
-
-/**
- * Sanitizes a tenant slug by removing invalid characters
- */
-export function sanitizeTenantId(input: string): string {
-  return input.replace(/[^a-zA-Z0-9-_]/g, '');
 }
 
 /**

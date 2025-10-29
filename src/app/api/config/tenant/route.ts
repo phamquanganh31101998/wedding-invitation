@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantBySlug } from '@/utils/database';
 import { TenantConfig } from '@/types';
-import { tenantIdValidationSchema } from '../../rsvp/validation';
+import { tenantSlugValidationSchema } from '../../rsvp/validation';
 import {
   handleApiError,
   InputSanitizer,
@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
     const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
     // Validate tenant parameter format
-    await tenantIdValidationSchema.validate({ tenantId: sanitizedTenantParam });
+    await tenantSlugValidationSchema.validate({
+      tenantSlug: sanitizedTenantParam,
+    });
 
     // Get tenant configuration from database
     const dbTenant = await getTenantBySlug(sanitizedTenantParam);
