@@ -87,7 +87,7 @@ export interface DatabaseGuest {
 }
 
 // Backward compatibility alias
-export interface DatabaseRSVP extends DatabaseGuest {}
+export type DatabaseRSVP = DatabaseGuest;
 
 // Tenant Configuration Types
 export interface TenantConfig {
@@ -123,9 +123,9 @@ export interface TenantRSVPData extends RSVPData {
 }
 
 // Guest-related types (new naming convention)
-export interface GuestData extends RSVPData {}
+export type GuestData = RSVPData;
 
-export interface GuestFormData extends RSVPFormData {}
+export type GuestFormData = RSVPFormData;
 
 export interface TenantGuestData extends GuestData {
   tenantId: number;

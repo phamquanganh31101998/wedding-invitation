@@ -187,21 +187,21 @@ export function handleDatabaseError(error: Error): ApiError {
 
 // Handle tenant-related errors
 export function handleTenantError(
-  tenantId: string,
+  tenantSlug: string,
   details?: string
 ): ApiError {
   return createApiError(
     ErrorType.NOT_FOUND,
     'Tenant not found',
     404,
-    details || `Tenant '${tenantId}' not found or inactive.`,
+    details || `Tenant '${tenantSlug}' not found or inactive.`,
     ErrorSeverity.MEDIUM,
     'TENANT_NOT_FOUND'
   );
 }
 
 // Handle guest/RSVP not found errors
-export function handleGuestNotFoundError(guestId: string): ApiError {
+export function handleGuestNotFoundError(guestId: string | number): ApiError {
   return createApiError(
     ErrorType.NOT_FOUND,
     'Guest not found',

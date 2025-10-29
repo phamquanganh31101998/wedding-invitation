@@ -3,12 +3,14 @@
  * These functions can be used in client components
  */
 
+import { SlugValidation } from '@/types';
+
 /**
- * Extracts tenant ID from URL pathname
+ * Extracts tenant slug from URL pathname
  * Supports formats like:
- * - /tenant-id -> tenant-id
- * - /tenant-id/ -> tenant-id
- * - /tenant-id/some/path -> tenant-id
+ * - /tenant-slug -> tenant-slug
+ * - /tenant-slug/ -> tenant-slug
+ * - /tenant-slug/some/path -> tenant-slug
  * - / -> null (root path)
  */
 export function extractTenantFromPath(pathname: string): string | null {
@@ -19,98 +21,97 @@ export function extractTenantFromPath(pathname: string): string | null {
   // Remove leading slash and split by slash
   const segments = pathname.replace(/^\//, '').split('/');
 
-  // Get the first segment as potential tenant ID
-  const potentialTenantId = segments[0];
+  // Get the first segment as potential tenant slug
+  const potentialSlug = segments[0];
 
-  if (!potentialTenantId || potentialTenantId.trim() === '') {
+  if (!potentialSlug || potentialSlug.trim() === '') {
     return null;
   }
 
-  // Basic validation - tenant ID should only contain alphanumeric, hyphens, and underscores
-  const tenantIdRegex = /^[a-zA-Z0-9-_]+$/;
-  if (!tenantIdRegex.test(potentialTenantId)) {
+  // Basic validation - tenant slug should only contain alphanumeric, hyphens, and underscores
+  const slugRegex = /^[a-zA-Z0-9-_]+$/;
+  if (!slugRegex.test(potentialSlug)) {
     return null;
   }
 
-  return potentialTenantId;
+  return potentialSlug;
 }
 
 /**
- * Client-side tenant ID format validation (without server-side existence check)
+ * Client-side tenant slug format validation (without server-side existence check)
  * Returns validation result for format only
  */
-export function validateTenantIdFormat(tenantId: string | null): {
-  isValid: boolean;
-  error?: string;
-  tenantId?: string;
-} {
-  if (!tenantId) {
+export function validateTenantIdFormat(slug: string | null): SlugValidation {
+  if (!slug) {
     return {
       isValid: false,
-      error: 'No tenant ID provided',
+      error: 'No tenant slug provided',
     };
   }
 
   // Check format
-  const tenantIdRegex = /^[a-zA-Z0-9-_]+$/;
-  if (!tenantIdRegex.test(tenantId)) {
+  const slugRegex = /^[a-zA-Z0-9-_]+$/;
+  if (!slugRegex.test(slug)) {
     return {
       isValid: false,
       error:
-        'Invalid tenant ID format. Only alphanumeric characters, hyphens, and underscores are allowed.',
+        'Invalid tenant slug format. Only alphanumeric characters, hyphens, and underscores are allowed.',
     };
   }
 
   // Check length
-  if (tenantId.length < 2 || tenantId.length > 50) {
+  if (slug.length < 2 || slug.length > 50) {
     return {
       isValid: false,
-      error: 'Tenant ID must be between 2 and 50 characters long.',
+      error: 'Tenant slug must be between 2 and 50 characters long.',
     };
   }
 
   return {
     isValid: true,
-    tenantId,
+    slug,
   };
 }
 
 /**
- * Gets the default tenant ID for fallback scenarios
+ * Gets the default tenant slug for fallback scenarios
  */
 export function getDefaultTenantId(): string {
   return 'default';
 }
 
 /**
- * Checks if a tenant ID is the default tenant
+ * Checks if a tenant slug is the default tenant
  */
-export function isDefaultTenant(tenantId: string | null): boolean {
-  return tenantId === getDefaultTenantId() || tenantId === null;
+export function isDefaultTenant(tenantSlug: string | null): boolean {
+  return tenantSlug === getDefaultTenantId() || tenantSlug === null;
 }
 
 /**
- * Sanitizes a tenant ID by removing invalid characters
+ * Sanitizes a tenant slug by removing invalid characters
  */
 export function sanitizeTenantId(input: string): string {
   return input.replace(/[^a-zA-Z0-9-_]/g, '');
 }
 
 /**
- * Generates a tenant-specific URL path
+ * Generates a tenant-specific URL path using slug
  */
-export function getTenantPath(tenantId: string, subPath: string = ''): string {
-  if (isDefaultTenant(tenantId)) {
+export function getTenantPath(
+  tenantSlug: string,
+  subPath: string = ''
+): string {
+  if (isDefaultTenant(tenantSlug)) {
     if (!subPath) return '/';
     return subPath.startsWith('/') ? subPath : `/${subPath}`;
   }
 
   const cleanSubPath = subPath.startsWith('/') ? subPath : `/${subPath}`;
-  return `/${tenantId}${cleanSubPath}`;
+  return `/${tenantSlug}${cleanSubPath}`;
 }
 
 /**
- * Extracts tenant ID from Next.js request URL
+ * Extracts tenant slug from Next.js request URL
  */
 export function extractTenantFromRequest(url: string): string | null {
   try {
@@ -128,15 +129,15 @@ export function extractTenantFromRequest(url: string): string | null {
 }
 
 /**
- * Creates a tenant-aware redirect URL
+ * Creates a tenant-aware redirect URL using slug
  */
 export function createTenantRedirectUrl(
-  tenantId: string | null,
+  tenantSlug: string | null,
   targetPath: string = '/'
 ): string {
-  if (isDefaultTenant(tenantId)) {
+  if (isDefaultTenant(tenantSlug)) {
     return targetPath;
   }
 
-  return getTenantPath(tenantId!, targetPath);
+  return getTenantPath(tenantSlug!, targetPath);
 }
