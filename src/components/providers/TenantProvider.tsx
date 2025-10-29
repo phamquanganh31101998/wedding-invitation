@@ -56,7 +56,7 @@ export function TenantProvider({
           const errorData = await configResponse.json();
           setError(
             errorData.error ||
-            `Configuration not found for tenant '${tenantSlug}'`
+              `Configuration not found for tenant '${tenantSlug}'`
           );
           setIsLoading(false);
           return;
