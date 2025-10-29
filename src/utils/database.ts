@@ -36,7 +36,8 @@ async function ensureInitialized() {
     // Create tenants table
     await db`
       CREATE TABLE IF NOT EXISTS tenants (
-        id VARCHAR(50) PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(50) UNIQUE NOT NULL,
         bride_name VARCHAR(100) NOT NULL,
         groom_name VARCHAR(100) NOT NULL,
         wedding_date DATE NOT NULL,
@@ -51,26 +52,34 @@ async function ensureInitialized() {
       )
     `;
 
-    // Create rsvps table
+    // Create guests table
     await db`
-      CREATE TABLE IF NOT EXISTS rsvps (
+      CREATE TABLE IF NOT EXISTS guests (
         id SERIAL PRIMARY KEY,
-        tenant_id VARCHAR(50) NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+        tenant_id INTEGER NOT NULL,
         name VARCHAR(100) NOT NULL,
         relationship VARCHAR(50) NOT NULL,
-        attendance VARCHAR(10) CHECK (attendance IN ('yes', 'no', 'maybe')) NOT NULL,
+        attendance VARCHAR(10) NOT NULL,
         message TEXT,
-        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        -- Foreign key constraint
+        CONSTRAINT guests_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE,
+        
+        -- Check constraint for attendance values
+        CONSTRAINT guests_attendance_check CHECK (attendance IN ('yes', 'no', 'maybe'))
       )
     `;
 
     // Create indexes for better performance
-    await db`CREATE INDEX IF NOT EXISTS idx_rsvps_tenant_id ON rsvps(tenant_id)`;
-    await db`CREATE INDEX IF NOT EXISTS idx_rsvps_attendance ON rsvps(attendance)`;
-    await db`CREATE INDEX IF NOT EXISTS idx_rsvps_submitted_at ON rsvps(submitted_at)`;
-    await db`CREATE INDEX IF NOT EXISTS idx_tenants_is_active ON tenants(is_active)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_tenants_is_active ON tenants USING BTREE (is_active)`;
+    await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_slug ON tenants USING BTREE (slug)`;
+    await db`CREATE UNIQUE INDEX IF NOT EXISTS tenants_pkey ON tenants USING BTREE (id)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_guests_attendance ON guests USING BTREE (attendance)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_guests_submitted_at ON guests USING BTREE (submitted_at)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_guests_tenant_id ON guests USING BTREE (tenant_id)`;
+    await db`CREATE UNIQUE INDEX IF NOT EXISTS guests_pkey ON guests USING BTREE (id)`;
 
     // Ensure default tenant exists
     await ensureDefaultTenant();
@@ -87,15 +96,15 @@ async function ensureDefaultTenant() {
   const db = ensureDatabaseConnection();
 
   try {
-    const existing = await db`SELECT id FROM tenants WHERE id = 'default'`;
+    const existing = await db`SELECT id FROM tenants WHERE id = 1`;
 
     if (Array.isArray(existing) && existing.length === 0) {
       await db`
         INSERT INTO tenants (
-          id, bride_name, groom_name, wedding_date, 
+          id, slug, bride_name, groom_name, wedding_date, 
           venue_name, venue_address, venue_map_link
         ) VALUES (
-          'default', '[Bride Name]', '[Groom Name]', 
+          1, 'default', '[Bride Name]', '[Groom Name]', 
           '2024-12-31', '[Venue Name]', '[Venue Address]',
           'https://maps.google.com'
         )
@@ -106,44 +115,7 @@ async function ensureDefaultTenant() {
   }
 }
 
-// Tenant operations
-export async function createTenant(tenantData: {
-  id: string;
-  brideName: string;
-  groomName: string;
-  weddingDate: string;
-  venueName: string;
-  venueAddress: string;
-  venueMapLink?: string;
-  themePrimaryColor?: string;
-  themeSecondaryColor?: string;
-}) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      INSERT INTO tenants (
-        id, bride_name, groom_name, wedding_date, 
-        venue_name, venue_address, venue_map_link,
-        theme_primary_color, theme_secondary_color
-      ) VALUES (
-        ${tenantData.id}, ${tenantData.brideName}, ${tenantData.groomName}, 
-        ${tenantData.weddingDate}, ${tenantData.venueName}, ${tenantData.venueAddress},
-        ${tenantData.venueMapLink || null}, 
-        ${tenantData.themePrimaryColor || '#E53E3E'}, 
-        ${tenantData.themeSecondaryColor || '#FED7D7'}
-      )
-      RETURNING *
-    `;
-    return (result as DatabaseRecord[])[0];
-  } catch (error) {
-    console.error('Failed to create tenant:', error);
-    throw new Error(`Failed to create tenant: ${error}`);
-  }
-}
-
-export async function getTenant(tenantId: string) {
+export async function getTenant(tenantId: number) {
   const db = ensureDatabaseConnection();
   await ensureInitialized();
 
@@ -159,9 +131,25 @@ export async function getTenant(tenantId: string) {
   }
 }
 
-// RSVP operations
-export async function createRSVP(rsvpData: {
-  tenantId: string;
+export async function getTenantBySlug(slug: string) {
+  const db = ensureDatabaseConnection();
+  await ensureInitialized();
+
+  try {
+    const result = await db`
+      SELECT * FROM tenants 
+      WHERE slug = ${slug} AND is_active = true
+    `;
+    return (result as DatabaseRecord[])[0] || null;
+  } catch (error) {
+    console.error('Failed to get tenant by slug:', error);
+    throw new Error(`Failed to get tenant by slug: ${error}`);
+  }
+}
+
+// Guest operations (formerly RSVP operations)
+export async function createGuest(guestData: {
+  tenantId: number;
   name: string;
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
@@ -172,57 +160,39 @@ export async function createRSVP(rsvpData: {
 
   try {
     const result = await db`
-      INSERT INTO rsvps (tenant_id, name, relationship, attendance, message)
-      VALUES (${rsvpData.tenantId}, ${rsvpData.name}, ${rsvpData.relationship}, 
-              ${rsvpData.attendance}, ${rsvpData.message || null})
+      INSERT INTO guests (tenant_id, name, relationship, attendance, message)
+      VALUES (${guestData.tenantId}, ${guestData.name}, ${guestData.relationship}, 
+              ${guestData.attendance}, ${guestData.message || null})
       RETURNING *
     `;
     return (result as DatabaseRecord[])[0];
   } catch (error) {
-    console.error('Failed to create RSVP:', error);
-    throw new Error(`Failed to create RSVP: ${error}`);
+    console.error('Failed to create guest:', error);
+    throw new Error(`Failed to create guest: ${error}`);
   }
 }
 
-export async function getRSVPs(tenantId: string) {
+export async function getGuestById(tenantId: number, guestId: number) {
   const db = ensureDatabaseConnection();
   await ensureInitialized();
 
   try {
     const result = await db`
-      SELECT id, name, relationship, attendance, message, submitted_at
-      FROM rsvps 
-      WHERE tenant_id = ${tenantId}
-      ORDER BY submitted_at DESC
-    `;
-    return result;
-  } catch (error) {
-    console.error('Failed to get RSVPs:', error);
-    throw new Error(`Failed to get RSVPs: ${error}`);
-  }
-}
-
-export async function getRSVPById(tenantId: string, rsvpId: string) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      SELECT id, name, relationship, attendance, message, submitted_at
-      FROM rsvps 
-      WHERE tenant_id = ${tenantId} AND id = ${parseInt(rsvpId)}
+      SELECT id, name, relationship, attendance, message, created_at as submitted_at
+      FROM guests 
+      WHERE tenant_id = ${tenantId} AND id = ${guestId}
     `;
     return (result as DatabaseRecord[])[0] || null;
   } catch (error) {
-    console.error('Failed to get RSVP by ID:', error);
-    throw new Error(`Failed to get RSVP by ID: ${error}`);
+    console.error('Failed to get guest by ID:', error);
+    throw new Error(`Failed to get guest by ID: ${error}`);
   }
 }
 
-export async function updateRSVP(
-  tenantId: string,
-  rsvpId: string,
-  rsvpData: {
+export async function updateGuest(
+  tenantId: number,
+  guestId: number,
+  guestData: {
     name: string;
     relationship: string;
     attendance: 'yes' | 'no' | 'maybe';
@@ -234,41 +204,49 @@ export async function updateRSVP(
 
   try {
     const result = await db`
-      UPDATE rsvps 
+      UPDATE guests 
       SET 
-        name = ${rsvpData.name},
-        relationship = ${rsvpData.relationship},
-        attendance = ${rsvpData.attendance},
-        message = ${rsvpData.message || null},
+        name = ${guestData.name},
+        relationship = ${guestData.relationship},
+        attendance = ${guestData.attendance},
+        message = ${guestData.message || null},
         updated_at = CURRENT_TIMESTAMP
-      WHERE tenant_id = ${tenantId} AND id = ${parseInt(rsvpId)}
+      WHERE tenant_id = ${tenantId} AND id = ${guestId}
       RETURNING *
     `;
     return (result as DatabaseRecord[])[0];
   } catch (error) {
-    console.error('Failed to update RSVP:', error);
-    throw new Error(`Failed to update RSVP: ${error}`);
+    console.error('Failed to update guest:', error);
+    throw new Error(`Failed to update guest: ${error}`);
   }
 }
 
-export async function getRSVPStats(tenantId: string) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
+// Backward compatibility functions (deprecated - use guest functions instead)
+export async function createRSVP(rsvpData: {
+  tenantId: number;
+  name: string;
+  relationship: string;
+  attendance: 'yes' | 'no' | 'maybe';
+  message?: string;
+}) {
+  return createGuest(rsvpData);
+}
 
-  try {
-    const result = await db`
-      SELECT 
-        attendance,
-        COUNT(*) as count
-      FROM rsvps 
-      WHERE tenant_id = ${tenantId}
-      GROUP BY attendance
-    `;
-    return result;
-  } catch (error) {
-    console.error('Failed to get RSVP stats:', error);
-    throw new Error(`Failed to get RSVP stats: ${error}`);
+export async function getRSVPById(tenantId: number, rsvpId: number) {
+  return getGuestById(tenantId, rsvpId);
+}
+
+export async function updateRSVP(
+  tenantId: number,
+  rsvpId: number,
+  rsvpData: {
+    name: string;
+    relationship: string;
+    attendance: 'yes' | 'no' | 'maybe';
+    message?: string;
   }
+) {
+  return updateGuest(tenantId, rsvpId, rsvpData);
 }
 
 export { sql };
