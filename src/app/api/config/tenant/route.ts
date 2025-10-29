@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenant } from '@/utils/database';
+import { getTenantBySlug } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
 import { TenantConfig } from '@/types';
 import { tenantIdValidationSchema } from '../../rsvp/validation';
@@ -44,15 +44,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const tenantId = tenantValidation.tenantId as string;
+    const tenantSlug = sanitizedTenantParam;
 
     // Get tenant configuration from database
-    const dbTenant = await getTenant(tenantId);
+    const dbTenant = await getTenantBySlug(tenantSlug);
 
     if (!dbTenant) {
       const tenantError = handleTenantError(
-        tenantId,
-        `Tenant '${tenantId}' not found in database`
+        tenantSlug,
+        `Tenant '${tenantSlug}' not found in database`
       );
       return NextResponse.json(
         {
@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
 
     // Transform database response to match frontend expectations
     const config: TenantConfig = {
-      id: dbTenant.id as string,
+      id: dbTenant.id as number,
+      slug: dbTenant.slug as string,
       brideName: dbTenant.bride_name as string,
       groomName: dbTenant.groom_name as string,
       weddingDate: dbTenant.wedding_date as string,
@@ -89,7 +90,7 @@ export async function GET(request: NextRequest) {
     // Return read-only configuration data
     return NextResponse.json({
       data: config,
-      tenant: tenantId,
+      tenant: tenantSlug,
     });
   } catch (error) {
     console.error('Error reading tenant configuration:', error);

@@ -4,6 +4,7 @@ export interface RSVPData {
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
+  submittedAt: string;
 }
 
 export interface RSVPFormData {

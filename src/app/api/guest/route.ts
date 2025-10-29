@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRSVPById } from '@/utils/database';
+import { getGuestById } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
 import { RSVPData } from '@/types';
 import {
@@ -47,7 +47,8 @@ export async function GET(request: NextRequest) {
     await guestIdValidationSchema.validate({ id: sanitizedId.toString() });
 
     // Sanitize and validate tenant parameter
-    let tenantId = 'default';
+    let tenantSlug = 'default';
+    let tenantDbId = 1; // Default tenant database ID
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
@@ -68,14 +69,15 @@ export async function GET(request: NextRequest) {
           { status: 400 }
         );
       }
-      tenantId = tenantValidation.tenantId as string;
+      tenantSlug = sanitizedTenantParam;
+      tenantDbId = tenantValidation.tenantId as number;
     }
 
-    // Get specific RSVP by ID and tenant from database
-    const dbRsvp = await getRSVPById(tenantId, sanitizedId.toString());
+    // Get specific guest by ID and tenant from database
+    const dbGuest = await getGuestById(tenantDbId, sanitizedId);
 
-    if (!dbRsvp) {
-      const guestError = handleGuestNotFoundError(sanitizedId.toString());
+    if (!dbGuest) {
+      const guestError = handleGuestNotFoundError(sanitizedId);
       return NextResponse.json(
         {
           error: guestError.message,
@@ -89,17 +91,17 @@ export async function GET(request: NextRequest) {
 
     // Transform database response to match frontend expectations
     const guest: RSVPData = {
-      id: (dbRsvp.id as number).toString(),
-      name: dbRsvp.name as string,
-      relationship: dbRsvp.relationship as string,
-      attendance: dbRsvp.attendance as 'yes' | 'no' | 'maybe',
-      message: (dbRsvp.message as string) || '',
-      submittedAt: dbRsvp.submitted_at as string,
+      id: dbGuest.id as number,
+      name: dbGuest.name as string,
+      relationship: dbGuest.relationship as string,
+      attendance: dbGuest.attendance as 'yes' | 'no' | 'maybe',
+      message: (dbGuest.message as string) || '',
+      submittedAt: dbGuest.submitted_at as string,
     };
 
     const response = {
       data: guest,
-      ...(tenantParam && { tenant: tenantId }),
+      ...(tenantParam && { tenant: tenantSlug }),
     };
 
     return NextResponse.json(response);

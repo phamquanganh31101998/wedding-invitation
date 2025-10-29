@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRSVP, getRSVPById, updateRSVP } from '@/utils/database';
+import { createGuest, getGuestById, updateGuest } from '@/utils/database';
 import { validateTenantId } from '@/utils/tenant';
 import { RSVPData } from '@/types';
 
@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Sanitize and validate tenant parameter
-    let tenantId = 'default';
+    let tenantSlug = 'default';
+    let tenantDbId = 1; // Default tenant database ID
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
@@ -42,11 +43,12 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-      tenantId = tenantValidation.tenantId as string;
+      tenantSlug = sanitizedTenantParam;
+      tenantDbId = tenantValidation.tenantId as number;
     }
 
     // Sanitize and validate guest ID if provided
-    let guestId: string | null = null;
+    let guestId: number | null = null;
     if (guestParam) {
       const sanitizedGuestId = InputSanitizer.sanitizeNumericId(guestParam);
       if (!sanitizedGuestId) {
@@ -64,7 +66,7 @@ export async function POST(request: NextRequest) {
       await guestIdValidationSchema.validate({
         id: sanitizedGuestId.toString(),
       });
-      guestId = sanitizedGuestId.toString();
+      guestId = sanitizedGuestId;
     }
 
     // Sanitize input data
@@ -87,11 +89,11 @@ export async function POST(request: NextRequest) {
     // Determine if this is create or update operation
     if (guestId) {
       // Check if guest exists
-      const existingGuest = await getRSVPById(tenantId, guestId);
+      const existingGuest = await getGuestById(tenantDbId, guestId);
 
       if (existingGuest) {
         // Case: Update existing guest
-        dbRsvp = await updateRSVP(tenantId, guestId, {
+        dbRsvp = await updateGuest(tenantDbId, guestId, {
           name: validatedData.name,
           relationship: validatedData.relationship,
           attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
@@ -100,8 +102,8 @@ export async function POST(request: NextRequest) {
         isUpdate = true;
       } else {
         // Case: Guest ID provided but guest not found -> Create new
-        dbRsvp = await createRSVP({
-          tenantId,
+        dbRsvp = await createGuest({
+          tenantId: tenantDbId,
           name: validatedData.name,
           relationship: validatedData.relationship,
           attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
@@ -110,8 +112,8 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Case: No guest ID provided -> Create new
-      dbRsvp = await createRSVP({
-        tenantId,
+      dbRsvp = await createGuest({
+        tenantId: tenantDbId,
         name: validatedData.name,
         relationship: validatedData.relationship,
         attendance: validatedData.attendance as 'yes' | 'no' | 'maybe',
@@ -121,7 +123,7 @@ export async function POST(request: NextRequest) {
 
     // Transform database response to match frontend expectations
     const rsvpData: RSVPData = {
-      id: (dbRsvp.id as number).toString(),
+      id: dbRsvp.id as number,
       name: dbRsvp.name as string,
       relationship: dbRsvp.relationship as string,
       attendance: dbRsvp.attendance as 'yes' | 'no' | 'maybe',
@@ -134,7 +136,7 @@ export async function POST(request: NextRequest) {
         ? 'RSVP updated successfully'
         : 'RSVP submitted successfully',
       data: rsvpData,
-      ...(tenantParam && { tenant: tenantId }),
+      ...(tenantParam && { tenant: tenantSlug }),
     };
 
     return NextResponse.json(response, { status: isUpdate ? 200 : 201 });
