@@ -1,10 +1,9 @@
 export interface RSVPData {
-  id: string;
+  id: number;
   name: string;
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
-  submittedAt: string;
 }
 
 export interface RSVPFormData {
@@ -60,7 +59,8 @@ export type CountdownSizeConfigs = Record<CountdownSize, CountdownSizeConfig>;
 
 // Database Types
 export interface DatabaseTenant {
-  id: string;
+  id: number;
+  slug: string;
   bride_name: string;
   groom_name: string;
   wedding_date: string;
@@ -74,9 +74,9 @@ export interface DatabaseTenant {
   updated_at: string;
 }
 
-export interface DatabaseRSVP {
+export interface DatabaseGuest {
   id: number;
-  tenant_id: string;
+  tenant_id: number;
   name: string;
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
@@ -86,9 +86,13 @@ export interface DatabaseRSVP {
   updated_at: string;
 }
 
+// Backward compatibility alias
+export interface DatabaseRSVP extends DatabaseGuest {}
+
 // Tenant Configuration Types
 export interface TenantConfig {
-  id: string;
+  id: number;
+  slug: string;
   brideName: string;
   groomName: string;
   weddingDate: string;
@@ -107,14 +111,62 @@ export interface TenantConfig {
 }
 
 export interface TenantContextType {
-  tenantId: string | null;
+  tenantSlug: string | null; // This is the slug for external APIs
+  tenantId: number | null; // This is the internal database ID
   config: TenantConfig | null;
   isLoading: boolean;
   error: string | null;
 }
 
 export interface TenantRSVPData extends RSVPData {
-  tenantId: string;
+  tenantId: number;
+}
+
+// Guest-related types (new naming convention)
+export interface GuestData extends RSVPData {}
+
+export interface GuestFormData extends RSVPFormData {}
+
+export interface TenantGuestData extends GuestData {
+  tenantId: number;
+}
+
+// Slug-related types
+export interface SlugValidation {
+  isValid: boolean;
+  error?: string;
+  slug?: string;
+}
+
+export interface TenantSlugLookup {
+  tenantId: number | null;
+  slug: string | null;
+  isValid: boolean;
+  error?: string;
+}
+
+// API Response types for the new structure
+export interface ApiGuestResponse {
+  data: RSVPData;
+  tenant?: string; // slug
+}
+
+export interface ApiGuestListResponse {
+  data: RSVPData[];
+  count: number;
+  tenant?: string; // slug
+}
+
+export interface ApiTenantResponse {
+  data: TenantConfig;
+}
+
+// Migration and validation types
+export interface TenantValidationResult {
+  isValid: boolean;
+  tenantId?: number;
+  slug?: string;
+  error?: string;
 }
 
 // Database utility types
