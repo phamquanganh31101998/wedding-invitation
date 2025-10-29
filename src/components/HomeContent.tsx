@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation';
 import { useGuest } from '@/hooks/useGuest';
 import { useTenant } from '@/components/providers/TenantProvider';
 import MapSection from '@/components/section/MapSection';
+import dayjs from 'dayjs';
 
 const DEFAULT_TARGET_DATE = new Date('2025-12-29');
 
@@ -38,7 +39,11 @@ export default function HomeContent() {
   // Use tenant-specific data if available, otherwise fall back to defaults
   const brideName = config?.brideName || '[Bride Name]';
   const groomName = config?.groomName || '[Groom Name]';
-  const weddingDate = config?.weddingDate || '[Wedding Date]';
+  const rawWeddingDate = config?.weddingDate || '[Wedding Date]';
+  const weddingDate =
+    rawWeddingDate !== '[Wedding Date]'
+      ? dayjs(rawWeddingDate).format('DD - MM - YYYY')
+      : rawWeddingDate;
   const venueName = config?.venue?.name || '[Venue Location]';
   const venueAddress = config?.venue?.address || '';
   const venueMapLink = config?.venue?.mapLink || '';

@@ -21,6 +21,7 @@
     "@neondatabase/serverless": "^1.0.2",
     "@reduxjs/toolkit": "^2.9.1",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.18",
     "dotenv": "^17.2.3",
     "formik": "^2.4.6",
     "framer-motion": "^6.5.1",
