@@ -77,7 +77,6 @@ async function ensureInitialized() {
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_slug ON tenants USING BTREE (slug)`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS tenants_pkey ON tenants USING BTREE (id)`;
     await db`CREATE INDEX IF NOT EXISTS idx_guests_attendance ON guests USING BTREE (attendance)`;
-    await db`CREATE INDEX IF NOT EXISTS idx_guests_submitted_at ON guests USING BTREE (submitted_at)`;
     await db`CREATE INDEX IF NOT EXISTS idx_guests_tenant_id ON guests USING BTREE (tenant_id)`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS guests_pkey ON guests USING BTREE (id)`;
 
@@ -178,7 +177,7 @@ export async function getGuestById(tenantId: number, guestId: number) {
 
   try {
     const result = await db`
-      SELECT id, name, relationship, attendance, message, created_at as submitted_at
+      SELECT id, name, relationship, attendance, message
       FROM guests 
       WHERE tenant_id = ${tenantId} AND id = ${guestId}
     `;

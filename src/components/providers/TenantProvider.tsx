@@ -47,21 +47,7 @@ export function TenantProvider({
       }
 
       try {
-        // Validate tenant exists first via API
-        const validationResponse = await fetch(
-          `/api/tenant/validate?tenant=${encodeURIComponent(tenantId)}`
-        );
-        const validationData = await validationResponse.json();
-
-        if (!validationData.isValid) {
-          setError(
-            validationData.error || `Tenant '${tenantId}' not found or inactive`
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        // Load tenant configuration via API
+        // Load tenant configuration via API (this also validates tenant exists)
         const configResponse = await fetch(
           `/api/config/tenant?tenant=${encodeURIComponent(tenantId)}`
         );
@@ -70,7 +56,7 @@ export function TenantProvider({
           const errorData = await configResponse.json();
           setError(
             errorData.error ||
-              `Configuration not found for tenant '${tenantId}'`
+            `Configuration not found for tenant '${tenantId}'`
           );
           setIsLoading(false);
           return;
@@ -92,7 +78,7 @@ export function TenantProvider({
   }, [tenantId, pathname]);
 
   const contextValue: TenantContextType = {
-    tenantId,
+    tenantSlug: tenantId, // This is the slug from the URL
     config,
     isLoading,
     error,

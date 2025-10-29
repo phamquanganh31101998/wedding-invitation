@@ -19,7 +19,6 @@ jest.mock('@/utils/tenant', () => ({
 
 const mockGetTenant = getTenant as jest.MockedFunction<typeof getTenant>;
 const mockCreateRSVP = createRSVP as jest.MockedFunction<typeof createRSVP>;
-// const mockGetRSVPs = getRSVPs as jest.MockedFunction<typeof getRSVPs>;
 const mockValidateTenantId = validateTenantId as jest.MockedFunction<
   typeof validateTenantId
 >;
@@ -68,7 +67,8 @@ describe('Multi-Tenant API Integration Tests', () => {
     // Default successful tenant validation
     mockValidateTenantId.mockResolvedValue({
       isValid: true,
-      tenantId: 'john-jane',
+      tenantId: 1, // Database ID
+      slug: 'john-jane',
     });
   });
 
@@ -104,7 +104,6 @@ describe('Multi-Tenant API Integration Tests', () => {
             relationship: 'Friend',
             attendance: 'yes',
             message: 'Excited to celebrate!',
-            submittedAt: '2025-10-28T00:00:00.000Z',
           },
           tenant: 'john-jane',
         }),

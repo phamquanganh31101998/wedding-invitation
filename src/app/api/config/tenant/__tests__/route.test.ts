@@ -6,7 +6,7 @@ import { TenantConfig, DatabaseTenant } from '@/types';
 
 // Mock the utilities
 jest.mock('@/utils/database', () => ({
-  getTenant: jest.fn(),
+  getTenantBySlug: jest.fn(),
 }));
 
 jest.mock('@/utils/tenant', () => ({
@@ -22,9 +22,10 @@ jest.mock('@/utils/error-handling', () => ({
   handleTenantError: jest.fn(),
 }));
 
-const mockGetTenant = databaseUtils.getTenant as jest.MockedFunction<
-  typeof databaseUtils.getTenant
->;
+const mockGetTenantBySlug =
+  databaseUtils.getTenantBySlug as jest.MockedFunction<
+    typeof databaseUtils.getTenantBySlug
+  >;
 const mockValidateTenantId =
   tenantUtils.validateTenantId as jest.MockedFunction<
     typeof tenantUtils.validateTenantId
@@ -37,7 +38,8 @@ describe('/api/config/tenant', () => {
 
   describe('GET', () => {
     const mockDbTenant: DatabaseTenant = {
-      id: 'john-jane',
+      id: 1, // Now integer
+      slug: 'john-jane',
       bride_name: 'Jane Smith',
       groom_name: 'John Doe',
       wedding_date: '2025-12-29',
@@ -52,7 +54,8 @@ describe('/api/config/tenant', () => {
     };
 
     const expectedTenantConfig: TenantConfig = {
-      id: 'john-jane',
+      id: 1, // Now integer
+      slug: 'john-jane',
       brideName: 'Jane Smith',
       groomName: 'John Doe',
       weddingDate: '2025-12-29',
@@ -73,9 +76,10 @@ describe('/api/config/tenant', () => {
     it('should successfully retrieve configuration for valid tenant', async () => {
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
-        tenantId: 'john-jane',
+        tenantId: 1, // Database ID
+        slug: 'john-jane',
       });
-      mockGetTenant.mockResolvedValueOnce(mockDbTenant);
+      mockGetTenantBySlug.mockResolvedValueOnce(mockDbTenant);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
@@ -87,7 +91,7 @@ describe('/api/config/tenant', () => {
       expect(responseData.data).toEqual(expectedTenantConfig);
       expect(responseData.tenant).toBe('john-jane');
       expect(mockValidateTenantId).toHaveBeenCalledWith('john-jane');
-      expect(mockGetTenant).toHaveBeenCalledWith('john-jane');
+      expect(mockGetTenantBySlug).toHaveBeenCalledWith('john-jane');
     });
 
     it('should reject request with invalid tenant', async () => {
@@ -105,7 +109,7 @@ describe('/api/config/tenant', () => {
       expect(response.status).toBe(400);
       expect(responseData.error).toBe('Invalid tenant');
       expect(responseData.details).toBe('Tenant not found');
-      expect(mockGetTenant).not.toHaveBeenCalled();
+      expect(mockGetTenantBySlug).not.toHaveBeenCalled();
     });
 
     it('should reject request without tenant parameter', async () => {
@@ -123,9 +127,10 @@ describe('/api/config/tenant', () => {
     it('should return 404 when tenant not found in database', async () => {
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
-        tenantId: 'john-jane',
+        tenantId: 1,
+        slug: 'john-jane',
       });
-      mockGetTenant.mockResolvedValueOnce(null);
+      mockGetTenantBySlug.mockResolvedValueOnce(null);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'
@@ -139,9 +144,10 @@ describe('/api/config/tenant', () => {
     it('should handle database connection errors', async () => {
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
-        tenantId: 'john-jane',
+        tenantId: 1,
+        slug: 'john-jane',
       });
-      mockGetTenant.mockRejectedValueOnce(
+      mockGetTenantBySlug.mockRejectedValueOnce(
         new Error('Database connection failed')
       );
 
@@ -162,9 +168,10 @@ describe('/api/config/tenant', () => {
 
       mockValidateTenantId.mockResolvedValueOnce({
         isValid: true,
-        tenantId: 'john-jane',
+        tenantId: 1,
+        slug: 'john-jane',
       });
-      mockGetTenant.mockResolvedValueOnce(tenantWithoutMapLink);
+      mockGetTenantBySlug.mockResolvedValueOnce(tenantWithoutMapLink);
 
       const request = new NextRequest(
         'http://localhost:3000/api/config/tenant?tenant=john-jane'

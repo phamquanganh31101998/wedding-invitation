@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createGuest, getGuestById, updateGuest } from '@/utils/database';
-import { validateTenantId } from '@/utils/tenant';
+import {
+  createGuest,
+  getGuestById,
+  updateGuest,
+  getTenantBySlug,
+} from '@/utils/database';
 import { RSVPData } from '@/types';
 
 interface DatabaseRecord {
@@ -20,8 +24,7 @@ export async function POST(request: NextRequest) {
     const guestParam = searchParams.get('guest');
     const body = await request.json();
 
-    // Sanitize and validate tenant parameter
-    let tenantSlug = 'default';
+    // Get tenant database ID from slug
     let tenantDbId = 1; // Default tenant database ID
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
@@ -31,20 +34,19 @@ export async function POST(request: NextRequest) {
         tenantId: sanitizedTenantParam,
       });
 
-      // Validate tenant exists and is active
-      const tenantValidation = await validateTenantId(sanitizedTenantParam);
-      if (!tenantValidation.isValid) {
+      // Get tenant by slug to get database ID
+      const tenant = await getTenantBySlug(sanitizedTenantParam);
+      if (!tenant || !tenant.is_active) {
         return NextResponse.json(
           {
             error: 'Invalid tenant',
             type: 'validation',
-            details: tenantValidation.error,
+            details: `Tenant '${sanitizedTenantParam}' not found or inactive.`,
           },
           { status: 400 }
         );
       }
-      tenantSlug = sanitizedTenantParam;
-      tenantDbId = tenantValidation.tenantId as number;
+      tenantDbId = tenant.id as number;
     }
 
     // Sanitize and validate guest ID if provided
@@ -128,7 +130,6 @@ export async function POST(request: NextRequest) {
       relationship: dbRsvp.relationship as string,
       attendance: dbRsvp.attendance as 'yes' | 'no' | 'maybe',
       message: (dbRsvp.message as string) || '',
-      submittedAt: dbRsvp.submitted_at as string,
     };
 
     const response = {
@@ -136,7 +137,7 @@ export async function POST(request: NextRequest) {
         ? 'RSVP updated successfully'
         : 'RSVP submitted successfully',
       data: rsvpData,
-      ...(tenantParam && { tenant: tenantSlug }),
+      ...(tenantParam && { tenant: tenantParam }),
     };
 
     return NextResponse.json(response, { status: isUpdate ? 200 : 201 });

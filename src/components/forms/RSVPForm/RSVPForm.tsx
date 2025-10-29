@@ -20,9 +20,9 @@ import PositionField from './RelationshipField';
 import AttendanceField from './AttendanceField';
 
 interface RSVPFormProps {
-  guestId?: string | null;
+  guestId?: string | number | null;
   initialData?: RSVPData | null;
-  tenantId?: string | null;
+  tenantSlug?: string | null; // The tenant slug from URL
   onSuccess?: (data: RSVPData) => void;
   onError?: (error: string) => void;
 }
@@ -35,7 +35,7 @@ interface FormState {
 const RSVPForm: React.FC<RSVPFormProps> = ({
   guestId,
   initialData,
-  tenantId,
+  tenantSlug,
   onSuccess,
   onError,
 }) => {
@@ -64,12 +64,12 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
       let url = '/api/rsvp';
       const params = new URLSearchParams();
 
-      if (tenantId) {
-        params.append('tenant', tenantId);
+      if (tenantSlug) {
+        params.append('tenant', tenantSlug);
       }
 
       if (guestId) {
-        params.append('guest', guestId);
+        params.append('guest', guestId.toString());
       }
 
       if (params.toString()) {

@@ -4,7 +4,6 @@ export interface RSVPData {
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
-  submittedAt: string;
 }
 
 export interface RSVPFormData {
@@ -82,7 +81,6 @@ export interface DatabaseGuest {
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
-  submitted_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -112,8 +110,7 @@ export interface TenantConfig {
 }
 
 export interface TenantContextType {
-  tenantSlug: string | null; // This is the slug for external APIs
-  tenantId: number | null; // This is the internal database ID
+  tenantSlug: string | null; // The slug from URL path
   config: TenantConfig | null;
   isLoading: boolean;
   error: string | null;

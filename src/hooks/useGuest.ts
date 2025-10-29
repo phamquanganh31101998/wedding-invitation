@@ -10,7 +10,7 @@ interface UseGuestReturn {
 }
 
 interface UseGuestOptions {
-  tenantId?: string | null;
+  tenantSlug?: string | null;
 }
 
 export function useGuest(
@@ -36,8 +36,8 @@ export function useGuest(
       try {
         // Build URL with tenant parameter if provided
         let url = `/api/guest?id=${encodeURIComponent(id)}`;
-        if (options?.tenantId) {
-          url += `&tenant=${encodeURIComponent(options.tenantId)}`;
+        if (options?.tenantSlug) {
+          url += `&tenant=${encodeURIComponent(options.tenantSlug)}`;
         }
 
         const response = await fetch(url);
@@ -61,7 +61,7 @@ export function useGuest(
     };
 
     fetchGuest();
-  }, [id, options?.tenantId]);
+  }, [id, options?.tenantSlug]);
 
   return { guest, loading, error };
 }

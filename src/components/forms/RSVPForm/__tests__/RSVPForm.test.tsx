@@ -104,7 +104,6 @@ describe('RSVPForm', () => {
           relationship: 'Friend',
           attendance: 'yes',
           message: 'Congratulations!',
-          submittedAt: '2023-01-01T00:00:00.000Z',
         },
       }),
     };
@@ -216,7 +215,6 @@ describe('RSVPForm', () => {
           relationship: 'Friend',
           attendance: 'yes',
           message: '',
-          submittedAt: '2023-01-01T00:00:00.000Z',
         },
       }),
     };
@@ -255,7 +253,6 @@ describe('RSVPForm', () => {
           relationship: 'Friend',
           attendance: 'yes',
           message: '',
-          submittedAt: '2023-01-01T00:00:00.000Z',
         },
       }),
     };
@@ -300,7 +297,6 @@ describe('RSVPForm', () => {
           relationship: 'Friend',
           attendance: 'yes',
           message: '',
-          submittedAt: '2023-01-01T00:00:00.000Z',
         },
       }),
     };

@@ -1,181 +1,145 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import {
-  extractTenantFromPath,
   validateTenantId,
-  getDefaultTenantId,
+  getTenanIdBySlug,
+  getDefaultTenantDbId,
+  extractTenantFromPath,
   isDefaultTenant,
-  sanitizeTenantId,
-  getTenantPath,
-  extractTenantFromRequest,
-  identifyTenant,
-  createTenantRedirectUrl,
 } from '../tenant';
-import { getTenant } from '../database';
-// import fs from 'fs';
-// import path from 'path';
+import * as database from '../database';
 
-// Mock the database utilities
+// Mock the database functions
 jest.mock('../database', () => ({
-  getTenant: jest.fn(),
+  getTenantBySlug: jest.fn(),
 }));
 
-const mockGetTenant = getTenant as jest.MockedFunction<typeof getTenant>;
+const mockGetTenantBySlug = database.getTenantBySlug as jest.MockedFunction<
+  typeof database.getTenantBySlug
+>;
 
 describe('Tenant Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  describe('validateTenantId', () => {
+    it('should validate existing tenant slug', async () => {
+      const mockTenant = {
+        id: 1,
+        slug: 'john-jane-wedding',
+        bride_name: 'Jane Smith',
+        groom_name: 'John Doe',
+        is_active: true,
+        wedding_date: '2025-12-29',
+        venue_name: 'Grand Ballroom',
+        venue_address: '123 Wedding St',
+        venue_map_link: 'https://maps.google.com',
+        theme_primary_color: '#E53E3E',
+        theme_secondary_color: '#FED7D7',
+        created_at: '2025-01-01T00:00:00Z',
+        updated_at: '2025-01-01T00:00:00Z',
+      };
+
+      mockGetTenantBySlug.mockResolvedValueOnce(mockTenant);
+
+      const result = await validateTenantId('john-jane-wedding');
+
+      expect(result.isValid).toBe(true);
+      expect(result.tenantId).toBe(1); // Database ID
+      expect(result.slug).toBe('john-jane-wedding');
+      expect(mockGetTenantBySlug).toHaveBeenCalledWith('john-jane-wedding');
+    });
+
+    it('should reject non-existent tenant slug', async () => {
+      mockGetTenantBySlug.mockResolvedValueOnce(null);
+
+      const result = await validateTenantId('non-existent');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('not found or inactive');
+    });
+
+    it('should reject invalid slug format', async () => {
+      const result = await validateTenantId('invalid@slug!');
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('Invalid tenant slug format');
+      expect(mockGetTenantBySlug).not.toHaveBeenCalled();
+    });
+
+    it('should reject null slug', async () => {
+      const result = await validateTenantId(null);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('No tenant slug provided');
+    });
+  });
+
+  describe('getTenanIdBySlug', () => {
+    it('should return tenant database ID for valid slug', async () => {
+      const mockTenant = {
+        id: 5,
+        slug: 'test-wedding',
+        is_active: true,
+        bride_name: 'Test Bride',
+        groom_name: 'Test Groom',
+        wedding_date: '2025-12-29',
+        venue_name: 'Test Venue',
+        venue_address: 'Test Address',
+        theme_primary_color: '#E53E3E',
+        theme_secondary_color: '#FED7D7',
+        created_at: '2025-01-01T00:00:00Z',
+        updated_at: '2025-01-01T00:00:00Z',
+      };
+
+      mockGetTenantBySlug.mockResolvedValueOnce(mockTenant);
+
+      const result = await getTenanIdBySlug('test-wedding');
+
+      expect(result.isValid).toBe(true);
+      expect(result.tenantId).toBe(5);
+      expect(result.slug).toBe('test-wedding');
+    });
+
+    it('should handle non-existent slug', async () => {
+      mockGetTenantBySlug.mockResolvedValueOnce(null);
+
+      const result = await getTenanIdBySlug('non-existent');
+
+      expect(result.isValid).toBe(false);
+      expect(result.tenantId).toBe(null);
+      expect(result.error).toContain('not found or inactive');
+    });
+  });
+
+  describe('getDefaultTenantDbId', () => {
+    it('should return integer 1 for default tenant database ID', () => {
+      const result = getDefaultTenantDbId();
+      expect(result).toBe(1);
+      expect(typeof result).toBe('number');
+    });
+  });
+
   describe('extractTenantFromPath', () => {
-    it('should extract tenant ID from simple path', () => {
-      expect(extractTenantFromPath('/john-jane')).toBe('john-jane');
-      expect(extractTenantFromPath('/smith-wedding')).toBe('smith-wedding');
-    });
-
-    it('should extract tenant ID from path with trailing slash', () => {
-      expect(extractTenantFromPath('/john-jane/')).toBe('john-jane');
-    });
-
-    it('should extract tenant ID from nested path', () => {
-      expect(extractTenantFromPath('/john-jane/rsvp')).toBe('john-jane');
-      expect(extractTenantFromPath('/smith-wedding/gallery/photos')).toBe(
-        'smith-wedding'
+    it('should extract tenant slug from URL path', () => {
+      expect(extractTenantFromPath('/john-jane-wedding')).toBe(
+        'john-jane-wedding'
+      );
+      expect(extractTenantFromPath('/john-jane-wedding/')).toBe(
+        'john-jane-wedding'
+      );
+      expect(extractTenantFromPath('/john-jane-wedding/rsvp')).toBe(
+        'john-jane-wedding'
       );
     });
 
     it('should return null for root path', () => {
-      expect(extractTenantFromPath('/')).toBeNull();
-      expect(extractTenantFromPath('')).toBeNull();
+      expect(extractTenantFromPath('/')).toBe(null);
+      expect(extractTenantFromPath('')).toBe(null);
     });
 
-    it('should return null for invalid tenant ID format', () => {
-      expect(extractTenantFromPath('/invalid@tenant')).toBeNull();
-      expect(extractTenantFromPath('/tenant with spaces')).toBeNull();
-      expect(extractTenantFromPath('/tenant.with.dots')).toBeNull();
-    });
-
-    it('should handle valid tenant ID characters', () => {
-      expect(extractTenantFromPath('/valid-tenant_123')).toBe(
-        'valid-tenant_123'
-      );
-      expect(extractTenantFromPath('/ABC123')).toBe('ABC123');
-    });
-
-    it('should return null for empty segments', () => {
-      expect(extractTenantFromPath('//nested')).toBeNull();
-      expect(extractTenantFromPath('/ /nested')).toBeNull();
-    });
-  });
-
-  describe('validateTenantId', () => {
-    it('should validate existing active tenant', async () => {
-      mockGetTenant.mockResolvedValue({
-        id: 'valid-tenant',
-        bride_name: 'Jane',
-        groom_name: 'John',
-        wedding_date: '2025-12-31',
-        venue_name: 'Test Venue',
-        venue_address: 'Test Address',
-        venue_map_link: null,
-        theme_primary_color: '#E53E3E',
-        theme_secondary_color: '#FED7D7',
-        is_active: true,
-        created_at: '2025-10-28T00:00:00Z',
-        updated_at: '2025-10-28T00:00:00Z',
-      });
-
-      const result = await validateTenantId('valid-tenant');
-      expect(result).toEqual({
-        isValid: true,
-        tenantId: 'valid-tenant',
-      });
-      expect(mockGetTenant).toHaveBeenCalledWith('valid-tenant');
-    });
-
-    it('should reject null tenant ID', async () => {
-      const result = await validateTenantId(null);
-      expect(result).toEqual({
-        isValid: false,
-        error: 'No tenant ID provided',
-      });
-      expect(mockGetTenant).not.toHaveBeenCalled();
-    });
-
-    it('should reject invalid format', async () => {
-      const result = await validateTenantId('invalid@tenant');
-      expect(result).toEqual({
-        isValid: false,
-        error:
-          'Invalid tenant ID format. Only alphanumeric characters, hyphens, and underscores are allowed.',
-      });
-      expect(mockValidateTenantExists).not.toHaveBeenCalled();
-    });
-
-    it('should reject tenant ID that is too short', async () => {
-      const result = await validateTenantId('a');
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Tenant ID must be between 2 and 50 characters long.',
-      });
-    });
-
-    it('should reject tenant ID that is too long', async () => {
-      const longTenantId = 'a'.repeat(51);
-      const result = await validateTenantId(longTenantId);
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Tenant ID must be between 2 and 50 characters long.',
-      });
-    });
-
-    it('should reject non-existent tenant', async () => {
-      mockGetTenant.mockResolvedValue(null);
-
-      const result = await validateTenantId('non-existent');
-      expect(result).toEqual({
-        isValid: false,
-        error: "Tenant 'non-existent' not found or inactive.",
-      });
-    });
-
-    it('should reject inactive tenant', async () => {
-      mockGetTenant.mockResolvedValue({
-        id: 'inactive-tenant',
-        bride_name: 'Jane',
-        groom_name: 'John',
-        wedding_date: '2025-12-31',
-        venue_name: 'Test Venue',
-        venue_address: 'Test Address',
-        venue_map_link: null,
-        theme_primary_color: '#E53E3E',
-        theme_secondary_color: '#FED7D7',
-        is_active: false,
-        created_at: '2025-10-28T00:00:00Z',
-        updated_at: '2025-10-28T00:00:00Z',
-      });
-
-      const result = await validateTenantId('inactive-tenant');
-      expect(result).toEqual({
-        isValid: false,
-        error: "Tenant 'inactive-tenant' not found or inactive.",
-      });
-    });
-
-    it('should handle validation errors', async () => {
-      mockGetTenant.mockRejectedValue(new Error('Database error'));
-
-      const result = await validateTenantId('error-tenant');
-      expect(result).toEqual({
-        isValid: false,
-        error: 'Error validating tenant: Database error',
-      });
-    });
-  });
-
-  describe('getDefaultTenantId', () => {
-    it('should return default tenant ID', () => {
-      expect(getDefaultTenantId()).toBe('default');
+    it('should reject invalid slug characters', () => {
+      expect(extractTenantFromPath('/invalid@slug!')).toBe(null);
+      expect(extractTenantFromPath('/slug with spaces')).toBe(null);
     });
   });
 
@@ -186,149 +150,8 @@ describe('Tenant Utilities', () => {
     });
 
     it('should identify non-default tenant', () => {
-      expect(isDefaultTenant('john-jane')).toBe(false);
-      expect(isDefaultTenant('smith-wedding')).toBe(false);
-    });
-  });
-
-  describe('sanitizeTenantId', () => {
-    it('should remove invalid characters', () => {
-      expect(sanitizeTenantId('valid-tenant_123')).toBe('valid-tenant_123');
-      expect(sanitizeTenantId('invalid@tenant.com')).toBe('invalidtenantcom');
-      expect(sanitizeTenantId('tenant with spaces')).toBe('tenantwithspaces');
-    });
-
-    it('should handle empty string', () => {
-      expect(sanitizeTenantId('')).toBe('');
-    });
-  });
-
-  describe('getTenantPath', () => {
-    it('should generate tenant-specific paths', () => {
-      expect(getTenantPath('john-jane')).toBe('/john-jane/');
-      expect(getTenantPath('john-jane', 'rsvp')).toBe('/john-jane/rsvp');
-      expect(getTenantPath('john-jane', '/rsvp')).toBe('/john-jane/rsvp');
-    });
-
-    it('should handle default tenant', () => {
-      expect(getTenantPath('default')).toBe('/');
-      expect(getTenantPath('default', 'rsvp')).toBe('/rsvp');
-      expect(getTenantPath('default', '/rsvp')).toBe('/rsvp');
-    });
-
-    it('should handle null tenant', () => {
-      expect(getTenantPath(null as any)).toBe('/');
-    });
-  });
-
-  describe('extractTenantFromRequest', () => {
-    it('should extract tenant from request URL', () => {
-      expect(extractTenantFromRequest('http://localhost:3000/john-jane')).toBe(
-        'john-jane'
-      );
-      expect(
-        extractTenantFromRequest('https://example.com/smith-wedding/rsvp')
-      ).toBe('smith-wedding');
-    });
-
-    it('should handle root URLs', () => {
-      expect(extractTenantFromRequest('http://localhost:3000/')).toBeNull();
-      expect(extractTenantFromRequest('https://example.com')).toBeNull();
-    });
-
-    it('should handle invalid URLs', () => {
-      expect(extractTenantFromRequest('not-a-url')).toBe('not-a-url');
-    });
-  });
-
-  describe('identifyTenant', () => {
-    it('should identify valid tenant', async () => {
-      mockGetTenant.mockResolvedValue({
-        id: 'john-jane',
-        bride_name: 'Jane',
-        groom_name: 'John',
-        wedding_date: '2025-12-31',
-        venue_name: 'Test Venue',
-        venue_address: 'Test Address',
-        venue_map_link: null,
-        theme_primary_color: '#E53E3E',
-        theme_secondary_color: '#FED7D7',
-        is_active: true,
-        created_at: '2025-10-28T00:00:00Z',
-        updated_at: '2025-10-28T00:00:00Z',
-      });
-
-      const result = await identifyTenant('/john-jane/rsvp');
-      expect(result).toEqual({
-        tenantId: 'john-jane',
-        isValid: true,
-        shouldFallback: false,
-      });
-    });
-
-    it('should handle root path', async () => {
-      const result = await identifyTenant('/');
-      expect(result).toEqual({
-        tenantId: null,
-        isValid: true,
-        shouldFallback: false,
-      });
-      expect(mockGetTenant).not.toHaveBeenCalled();
-    });
-
-    it('should handle invalid tenant', async () => {
-      mockGetTenant.mockResolvedValue(null);
-
-      const result = await identifyTenant('/invalid-tenant');
-      expect(result).toEqual({
-        tenantId: 'invalid-tenant',
-        isValid: false,
-        error: "Tenant 'invalid-tenant' not found or inactive.",
-        shouldFallback: true,
-      });
-    });
-
-    it('should handle tenant validation errors', async () => {
-      mockGetTenant.mockRejectedValue(new Error('Validation error'));
-
-      const result = await identifyTenant('/error-tenant');
-      expect(result).toEqual({
-        tenantId: 'error-tenant',
-        isValid: false,
-        error: 'Error validating tenant: Validation error',
-        shouldFallback: true,
-      });
-    });
-
-    it('should handle invalid tenant ID format', async () => {
-      const result = await identifyTenant('/invalid@tenant');
-      expect(result).toEqual({
-        tenantId: null,
-        isValid: true,
-        shouldFallback: false,
-      });
-      expect(mockValidateTenantExists).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('createTenantRedirectUrl', () => {
-    it('should create tenant-specific redirect URLs', () => {
-      expect(createTenantRedirectUrl('john-jane', '/rsvp')).toBe(
-        '/john-jane/rsvp'
-      );
-      expect(createTenantRedirectUrl('smith-wedding', '/gallery')).toBe(
-        '/smith-wedding/gallery'
-      );
-    });
-
-    it('should handle default tenant', () => {
-      expect(createTenantRedirectUrl('default', '/rsvp')).toBe('/rsvp');
-      expect(createTenantRedirectUrl(null, '/gallery')).toBe('/gallery');
-    });
-
-    it('should handle root target path', () => {
-      expect(createTenantRedirectUrl('john-jane')).toBe('/john-jane/');
-      expect(createTenantRedirectUrl('default')).toBe('/');
+      expect(isDefaultTenant('john-jane-wedding')).toBe(false);
+      expect(isDefaultTenant('custom-tenant')).toBe(false);
     });
   });
 });

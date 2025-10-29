@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantBySlug } from '@/utils/database';
-import { validateTenantId } from '@/utils/tenant';
 import { TenantConfig } from '@/types';
 import { tenantIdValidationSchema } from '../../rsvp/validation';
 import {
@@ -31,28 +30,13 @@ export async function GET(request: NextRequest) {
     // Validate tenant parameter format
     await tenantIdValidationSchema.validate({ tenantId: sanitizedTenantParam });
 
-    // Validate tenant exists and is active
-    const tenantValidation = await validateTenantId(sanitizedTenantParam);
-    if (!tenantValidation.isValid) {
-      return NextResponse.json(
-        {
-          error: 'Invalid tenant',
-          type: 'validation',
-          details: tenantValidation.error,
-        },
-        { status: 400 }
-      );
-    }
-
-    const tenantSlug = sanitizedTenantParam;
-
     // Get tenant configuration from database
-    const dbTenant = await getTenantBySlug(tenantSlug);
+    const dbTenant = await getTenantBySlug(sanitizedTenantParam);
 
-    if (!dbTenant) {
+    if (!dbTenant || !dbTenant.is_active) {
       const tenantError = handleTenantError(
-        tenantSlug,
-        `Tenant '${tenantSlug}' not found in database`
+        sanitizedTenantParam,
+        `Tenant '${sanitizedTenantParam}' not found or inactive in database`
       );
       return NextResponse.json(
         {
@@ -90,7 +74,7 @@ export async function GET(request: NextRequest) {
     // Return read-only configuration data
     return NextResponse.json({
       data: config,
-      tenant: tenantSlug,
+      tenant: sanitizedTenantParam,
     });
   } catch (error) {
     console.error('Error reading tenant configuration:', error);

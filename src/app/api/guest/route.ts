@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGuestById } from '@/utils/database';
-import { validateTenantId } from '@/utils/tenant';
+import { getGuestById, getTenantBySlug } from '@/utils/database';
 import { RSVPData } from '@/types';
 import {
   guestIdValidationSchema,
@@ -46,8 +45,7 @@ export async function GET(request: NextRequest) {
     // Validate guest ID format
     await guestIdValidationSchema.validate({ id: sanitizedId.toString() });
 
-    // Sanitize and validate tenant parameter
-    let tenantSlug = 'default';
+    // Get tenant database ID from slug
     let tenantDbId = 1; // Default tenant database ID
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
@@ -57,20 +55,19 @@ export async function GET(request: NextRequest) {
         tenantId: sanitizedTenantParam,
       });
 
-      // Validate tenant exists and is active
-      const tenantValidation = await validateTenantId(sanitizedTenantParam);
-      if (!tenantValidation.isValid) {
+      // Get tenant by slug to get database ID
+      const tenant = await getTenantBySlug(sanitizedTenantParam);
+      if (!tenant || !tenant.is_active) {
         return NextResponse.json(
           {
             error: 'Invalid tenant',
             type: 'validation',
-            details: tenantValidation.error,
+            details: `Tenant '${sanitizedTenantParam}' not found or inactive.`,
           },
           { status: 400 }
         );
       }
-      tenantSlug = sanitizedTenantParam;
-      tenantDbId = tenantValidation.tenantId as number;
+      tenantDbId = tenant.id as number;
     }
 
     // Get specific guest by ID and tenant from database
@@ -96,12 +93,11 @@ export async function GET(request: NextRequest) {
       relationship: dbGuest.relationship as string,
       attendance: dbGuest.attendance as 'yes' | 'no' | 'maybe',
       message: (dbGuest.message as string) || '',
-      submittedAt: dbGuest.submitted_at as string,
     };
 
     const response = {
       data: guest,
-      ...(tenantParam && { tenant: tenantSlug }),
+      ...(tenantParam && { tenant: tenantParam }),
     };
 
     return NextResponse.json(response);

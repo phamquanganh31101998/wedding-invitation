@@ -25,12 +25,12 @@ export default function HomeContent() {
   const searchParams = useSearchParams();
   const guestId = searchParams.get('id');
   const {
-    tenantId,
+    tenantSlug,
     config,
     isLoading: tenantLoading,
     error: tenantError,
   } = useTenant();
-  const { guest, loading } = useGuest(guestId, { tenantId });
+  const { guest, loading } = useGuest(guestId, { tenantSlug });
 
   const guestName = guest?.name || '';
   const guestGreeting = guestName ? `Xin chào ${guestName}. ` : 'Xin chào. ';
@@ -108,7 +108,7 @@ export default function HomeContent() {
         {/* Countdown Timer with Error Boundary */}
         <CountdownSection targetDate={targetDate} />
 
-        <RSVPSection guestId={guestId} guest={guest} tenantId={tenantId} />
+        <RSVPSection guestId={guestId} guest={guest} tenantSlug={tenantSlug} />
 
         <FloatingMusicButton />
       </VStack>

@@ -7,13 +7,13 @@ import { RSVPData } from '@/types';
 interface RSVPSectionProps {
   guestId?: string | null;
   guest?: RSVPData | null;
-  tenantId?: string | null;
+  tenantSlug?: string | null;
 }
 
 export default function RSVPSection({
   guestId,
   guest,
-  tenantId,
+  tenantSlug,
 }: RSVPSectionProps) {
   return (
     <VStack spacing={8}>
@@ -24,7 +24,7 @@ export default function RSVPSection({
         </Text>
       </Box>
 
-      <RSVPForm guestId={guestId} initialData={guest} tenantId={tenantId} />
+      <RSVPForm guestId={guestId} initialData={guest} tenantSlug={tenantSlug} />
     </VStack>
   );
 }
