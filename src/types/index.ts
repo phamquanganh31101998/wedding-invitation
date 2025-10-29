@@ -1,10 +1,9 @@
 export interface RSVPData {
-  id: string;
+  id: number;
   name: string;
   relationship: string;
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
-  submittedAt: string;
 }
 
 export interface RSVPFormData {
@@ -14,30 +13,14 @@ export interface RSVPFormData {
   message?: string;
 }
 
-export interface WeddingDetails {
-  bride: string;
-  groom: string;
-  weddingDate: string;
-  venue: {
-    name: string;
-    address: string;
-    coordinates?: {
-      lat: number;
-      lng: number;
-    };
-  };
-}
-
 // Countdown Timer Types
-export interface CountdownState {
+export interface UseCountdownReturn {
   days: number;
   isToday: boolean;
   isPast: boolean;
   error?: string;
   errorType?: 'validation' | 'calculation' | 'timezone' | 'unknown';
 }
-
-export type UseCountdownReturn = CountdownState;
 
 export interface CountdownTimerProps {
   targetDate: Date;
@@ -53,42 +36,16 @@ export interface CountdownSizeConfig {
   maxWidth: string;
 }
 
-export type CountdownSize = 'sm' | 'md' | 'lg';
-
 // Countdown timer size configurations mapping
-export type CountdownSizeConfigs = Record<CountdownSize, CountdownSizeConfig>;
-
-// Database Types
-export interface DatabaseTenant {
-  id: string;
-  bride_name: string;
-  groom_name: string;
-  wedding_date: string;
-  venue_name: string;
-  venue_address: string;
-  venue_map_link?: string;
-  theme_primary_color: string;
-  theme_secondary_color: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface DatabaseRSVP {
-  id: number;
-  tenant_id: string;
-  name: string;
-  relationship: string;
-  attendance: 'yes' | 'no' | 'maybe';
-  message?: string;
-  submitted_at: string;
-  created_at: string;
-  updated_at: string;
-}
+export type CountdownSizeConfigs = Record<
+  'sm' | 'md' | 'lg',
+  CountdownSizeConfig
+>;
 
 // Tenant Configuration Types
 export interface TenantConfig {
-  id: string;
+  id: number;
+  slug: string;
   brideName: string;
   groomName: string;
   weddingDate: string;
@@ -107,29 +64,32 @@ export interface TenantConfig {
 }
 
 export interface TenantContextType {
-  tenantId: string | null;
+  tenantSlug: string | null; // The slug from URL path
   config: TenantConfig | null;
   isLoading: boolean;
   error: string | null;
 }
 
-export interface TenantRSVPData extends RSVPData {
-  tenantId: string;
+// Slug-related types
+export interface SlugValidation {
+  isValid: boolean;
+  error?: string;
+  slug?: string;
 }
 
-// Database utility types
-export interface DatabaseResponse<T> {
-  success: boolean;
-  data?: T;
+export interface TenantSlugLookup {
+  tenantId: number | null;
+  slug: string | null;
+  isValid: boolean;
   error?: string;
 }
 
-export interface MigrationResult {
-  success: boolean;
-  migratedCount?: number;
-  errors?: string[];
-  message: string;
-  backupPath?: string;
+// Migration and validation types
+export interface TenantValidationResult {
+  isValid: boolean;
+  tenantId?: number;
+  slug?: string;
+  error?: string;
 }
 
 // Music Player Types

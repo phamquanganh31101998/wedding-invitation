@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 
 import HomeContent from '@/components/HomeContent';
-import { validateTenantId } from '@/utils/tenant';
+import { validateTenantSlug } from '@/utils/tenant';
 import Link from 'next/link';
 
 interface TenantPageProps {
@@ -31,10 +31,10 @@ function LoadingFallback() {
 }
 
 function TenantErrorFallback({
-  tenantId,
+  tenantSlug,
   error,
 }: {
-  tenantId: string;
+  tenantSlug: string;
   error: string;
 }) {
   return (
@@ -45,7 +45,7 @@ function TenantErrorFallback({
           <VStack align="start" spacing={2}>
             <AlertTitle>Tenant Not Found</AlertTitle>
             <AlertDescription>
-              The wedding invitation for &quot;{tenantId}&quot; could not be
+              The wedding invitation for &quot;{tenantSlug}&quot; could not be
               found. {error}
             </AlertDescription>
           </VStack>
@@ -69,16 +69,16 @@ function TenantErrorFallback({
 }
 
 export default async function TenantPage({ params }: TenantPageProps) {
-  const { tenant: tenantId } = await params;
+  const { tenant: tenantSlug } = await params;
 
-  // Validate tenant ID format and existence
-  const validation = await validateTenantId(tenantId);
+  // Validate tenant slug format and existence
+  const validation = await validateTenantSlug(tenantSlug);
 
   if (!validation.isValid) {
     // For invalid tenant IDs, show error page instead of 404
     return (
       <TenantErrorFallback
-        tenantId={tenantId}
+        tenantSlug={tenantSlug}
         error={validation.error || 'Unknown error'}
       />
     );
@@ -93,10 +93,10 @@ export default async function TenantPage({ params }: TenantPageProps) {
 
 // Generate metadata for the tenant page
 export async function generateMetadata({ params }: TenantPageProps) {
-  const { tenant: tenantId } = await params;
+  const { tenant: tenantSlug } = await params;
 
   // Basic validation for metadata generation
-  if (!tenantId || !/^[a-zA-Z0-9-_]+$/.test(tenantId)) {
+  if (!tenantSlug || !/^[a-zA-Z0-9-_]+$/.test(tenantSlug)) {
     return {
       title: 'Wedding Invitation - Not Found',
       description: 'The requested wedding invitation could not be found.',
@@ -104,16 +104,16 @@ export async function generateMetadata({ params }: TenantPageProps) {
   }
 
   try {
-    const validation = await validateTenantId(tenantId);
+    const validation = await validateTenantSlug(tenantSlug);
 
     if (validation.isValid) {
       return {
-        title: `Wedding Invitation - ${tenantId}`,
-        description: `Join us for our special day! Wedding invitation for ${tenantId}.`,
+        title: `Wedding Invitation - ${tenantSlug}`,
+        description: `Join us for our special day! Wedding invitation for ${tenantSlug}.`,
       };
     }
   } catch (error) {
-    console.error('Error generating metadata for tenant:', tenantId, error);
+    console.error('Error generating metadata for tenant:', tenantSlug, error);
   }
 
   return {

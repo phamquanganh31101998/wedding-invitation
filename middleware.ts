@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractTenantFromRequest, validateTenantId } from '@/utils/tenant';
+import { extractTenantFromRequest, validateTenantSlug } from '@/utils/tenant';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,35 +15,35 @@ export async function middleware(request: NextRequest) {
   }
 
   // Extract tenant ID from the request URL
-  const tenantId = extractTenantFromRequest(request.url);
+  const tenantSlug = extractTenantFromRequest(request.url);
 
   // If no tenant ID in path, allow request to proceed (default tenant)
-  if (!tenantId) {
+  if (!tenantSlug) {
     return NextResponse.next();
   }
 
   try {
-    // Validate the tenant ID
-    const validation = await validateTenantId(tenantId);
+    // Validate the tenant slug
+    const validation = await validateTenantSlug(tenantSlug);
 
     if (validation.isValid) {
       // Tenant is valid, allow request to proceed
       const response = NextResponse.next();
 
       // Add tenant ID to headers for use in components
-      response.headers.set('x-tenant-id', tenantId);
+      response.headers.set('x-tenant-slug', tenantSlug);
 
       return response;
     } else {
       // Invalid tenant - redirect to error page or show not found
       console.warn(
-        `Invalid tenant access attempt: ${tenantId}`,
+        `Invalid tenant access attempt: ${tenantSlug}`,
         validation.error
       );
 
       // Create a URL for the tenant error page
       const errorUrl = new URL(`/tenant-error`, request.url);
-      errorUrl.searchParams.set('tenant', tenantId);
+      errorUrl.searchParams.set('tenant', tenantSlug);
       errorUrl.searchParams.set(
         'error',
         validation.error || 'Tenant not found'
@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
 
     // Optionally redirect to a generic error page
     const errorUrl = new URL(`/tenant-error`, request.url);
-    errorUrl.searchParams.set('tenant', tenantId);
+    errorUrl.searchParams.set('tenant', tenantSlug);
     errorUrl.searchParams.set('error', 'System error during tenant validation');
 
     return NextResponse.redirect(errorUrl);

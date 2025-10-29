@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenant } from '@/utils/database';
-import { validateTenantId } from '@/utils/tenant';
+import { getTenantBySlug } from '@/utils/database';
 import { TenantConfig } from '@/types';
-import { tenantIdValidationSchema } from '../../rsvp/validation';
+import { tenantSlugValidationSchema } from '../../rsvp/validation';
 import {
   handleApiError,
   InputSanitizer,
@@ -29,30 +28,17 @@ export async function GET(request: NextRequest) {
     const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
     // Validate tenant parameter format
-    await tenantIdValidationSchema.validate({ tenantId: sanitizedTenantParam });
-
-    // Validate tenant exists and is active
-    const tenantValidation = await validateTenantId(sanitizedTenantParam);
-    if (!tenantValidation.isValid) {
-      return NextResponse.json(
-        {
-          error: 'Invalid tenant',
-          type: 'validation',
-          details: tenantValidation.error,
-        },
-        { status: 400 }
-      );
-    }
-
-    const tenantId = tenantValidation.tenantId as string;
+    await tenantSlugValidationSchema.validate({
+      tenantSlug: sanitizedTenantParam,
+    });
 
     // Get tenant configuration from database
-    const dbTenant = await getTenant(tenantId);
+    const dbTenant = await getTenantBySlug(sanitizedTenantParam);
 
-    if (!dbTenant) {
+    if (!dbTenant || !dbTenant.is_active) {
       const tenantError = handleTenantError(
-        tenantId,
-        `Tenant '${tenantId}' not found in database`
+        sanitizedTenantParam,
+        `Tenant '${sanitizedTenantParam}' not found or inactive in database`
       );
       return NextResponse.json(
         {
@@ -67,7 +53,8 @@ export async function GET(request: NextRequest) {
 
     // Transform database response to match frontend expectations
     const config: TenantConfig = {
-      id: dbTenant.id as string,
+      id: dbTenant.id as number,
+      slug: dbTenant.slug as string,
       brideName: dbTenant.bride_name as string,
       groomName: dbTenant.groom_name as string,
       weddingDate: dbTenant.wedding_date as string,
@@ -89,7 +76,7 @@ export async function GET(request: NextRequest) {
     // Return read-only configuration data
     return NextResponse.json({
       data: config,
-      tenant: tenantId,
+      tenant: sanitizedTenantParam,
     });
   } catch (error) {
     console.error('Error reading tenant configuration:', error);

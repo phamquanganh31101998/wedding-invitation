@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRSVPById } from '@/utils/database';
-import { validateTenantId } from '@/utils/tenant';
+import { getGuestById, getTenantBySlug } from '@/utils/database';
 import { RSVPData } from '@/types';
 import {
   guestIdValidationSchema,
-  tenantIdValidationSchema,
+  tenantSlugValidationSchema,
 } from '../rsvp/validation';
 import {
   handleApiError,
@@ -46,36 +45,36 @@ export async function GET(request: NextRequest) {
     // Validate guest ID format
     await guestIdValidationSchema.validate({ id: sanitizedId.toString() });
 
-    // Sanitize and validate tenant parameter
-    let tenantId = 'default';
+    // Get tenant database ID from slug
+    let tenantDbId = 1; // Default tenant database ID
     if (tenantParam) {
       const sanitizedTenantParam = InputSanitizer.sanitizeTenantId(tenantParam);
 
       // Validate tenant parameter format
-      await tenantIdValidationSchema.validate({
-        tenantId: sanitizedTenantParam,
+      await tenantSlugValidationSchema.validate({
+        tenantSlug: sanitizedTenantParam,
       });
 
-      // Validate tenant exists and is active
-      const tenantValidation = await validateTenantId(sanitizedTenantParam);
-      if (!tenantValidation.isValid) {
+      // Get tenant by slug to get database ID
+      const tenant = await getTenantBySlug(sanitizedTenantParam);
+      if (!tenant || !tenant.is_active) {
         return NextResponse.json(
           {
             error: 'Invalid tenant',
             type: 'validation',
-            details: tenantValidation.error,
+            details: `Tenant '${sanitizedTenantParam}' not found or inactive.`,
           },
           { status: 400 }
         );
       }
-      tenantId = tenantValidation.tenantId as string;
+      tenantDbId = tenant.id as number;
     }
 
-    // Get specific RSVP by ID and tenant from database
-    const dbRsvp = await getRSVPById(tenantId, sanitizedId.toString());
+    // Get specific guest by ID and tenant from database
+    const dbGuest = await getGuestById(tenantDbId, sanitizedId);
 
-    if (!dbRsvp) {
-      const guestError = handleGuestNotFoundError(sanitizedId.toString());
+    if (!dbGuest) {
+      const guestError = handleGuestNotFoundError(sanitizedId);
       return NextResponse.json(
         {
           error: guestError.message,
@@ -89,17 +88,16 @@ export async function GET(request: NextRequest) {
 
     // Transform database response to match frontend expectations
     const guest: RSVPData = {
-      id: (dbRsvp.id as number).toString(),
-      name: dbRsvp.name as string,
-      relationship: dbRsvp.relationship as string,
-      attendance: dbRsvp.attendance as 'yes' | 'no' | 'maybe',
-      message: (dbRsvp.message as string) || '',
-      submittedAt: dbRsvp.submitted_at as string,
+      id: dbGuest.id as number,
+      name: dbGuest.name as string,
+      relationship: dbGuest.relationship as string,
+      attendance: dbGuest.attendance as 'yes' | 'no' | 'maybe',
+      message: (dbGuest.message as string) || '',
     };
 
     const response = {
       data: guest,
-      ...(tenantParam && { tenant: tenantId }),
+      ...(tenantParam && { tenant: tenantParam }),
     };
 
     return NextResponse.json(response);

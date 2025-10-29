@@ -19,12 +19,12 @@ export function useTenant(): TenantContextType {
 
 interface TenantProviderProps {
   children: React.ReactNode;
-  tenantId?: string | null;
+  tenantSlug?: string | null;
 }
 
 export function TenantProvider({
   children,
-  tenantId: propTenantId,
+  tenantSlug: propTenantId,
 }: TenantProviderProps) {
   const pathname = usePathname();
   const [config, setConfig] = useState<TenantConfig | null>(null);
@@ -32,7 +32,7 @@ export function TenantProvider({
   const [error, setError] = useState<string | null>(null);
 
   // Extract tenant ID from props or URL path
-  const tenantId = propTenantId || extractTenantFromPath(pathname);
+  const tenantSlug = propTenantId || extractTenantFromPath(pathname);
 
   useEffect(() => {
     async function loadTenantConfig() {
@@ -40,37 +40,23 @@ export function TenantProvider({
       setError(null);
       setConfig(null);
 
-      if (!tenantId) {
+      if (!tenantSlug) {
         // No tenant ID provided, use default state
         setIsLoading(false);
         return;
       }
 
       try {
-        // Validate tenant exists first via API
-        const validationResponse = await fetch(
-          `/api/tenant/validate?tenant=${encodeURIComponent(tenantId)}`
-        );
-        const validationData = await validationResponse.json();
-
-        if (!validationData.isValid) {
-          setError(
-            validationData.error || `Tenant '${tenantId}' not found or inactive`
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        // Load tenant configuration via API
+        // Load tenant configuration via API (this also validates tenant exists)
         const configResponse = await fetch(
-          `/api/config/tenant?tenant=${encodeURIComponent(tenantId)}`
+          `/api/config/tenant?tenant=${encodeURIComponent(tenantSlug)}`
         );
 
         if (!configResponse.ok) {
           const errorData = await configResponse.json();
           setError(
             errorData.error ||
-              `Configuration not found for tenant '${tenantId}'`
+              `Configuration not found for tenant '${tenantSlug}'`
           );
           setIsLoading(false);
           return;
@@ -89,10 +75,10 @@ export function TenantProvider({
     }
 
     loadTenantConfig();
-  }, [tenantId, pathname]);
+  }, [tenantSlug, pathname]);
 
   const contextValue: TenantContextType = {
-    tenantId,
+    tenantSlug, // This is the slug from the URL
     config,
     isLoading,
     error,

@@ -20,13 +20,6 @@ export interface AudioState {
   currentTrackIndex: number;
 }
 
-export interface AudioConfig {
-  autoplay: boolean;
-  loop: boolean;
-  shuffle: boolean;
-  preload: 'none' | 'metadata' | 'auto';
-}
-
 export interface PlaylistConfig {
   musicFolder: string;
   supportedFormats: string[];
@@ -53,26 +46,4 @@ export interface AudioContextValue {
 
 export interface MusicPlayerProps {
   theme?: 'light' | 'dark';
-}
-
-export interface ErrorRecovery {
-  maxRetries: number;
-  retryDelay: number;
-  fallbackBehavior: 'hide' | 'show-error' | 'retry';
-}
-
-export interface A11yAttributes {
-  'aria-label': string;
-  'aria-pressed': boolean;
-  'aria-describedby': string;
-  role: 'button';
-}
-
-export interface TracksResponse {
-  tracks: {
-    filename: string;
-    title: string;
-    artist?: string;
-    src: string;
-  }[];
 }

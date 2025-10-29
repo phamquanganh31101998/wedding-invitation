@@ -58,3 +58,4 @@ yarn format:check # Check formatting without changes
 - Implement **proper error handling** for API routes
 - Keep **CSV data operations** in utility functions
 - Use Yarn as package manager
+- Don't write tests (yet)

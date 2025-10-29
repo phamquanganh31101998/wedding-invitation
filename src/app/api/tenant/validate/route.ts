@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateTenantId } from '@/utils/tenant';
+import { validateTenantSlug } from '@/utils/tenant';
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate tenant ID
-    const validation = await validateTenantId(tenantParam);
+    // Validate tenant slug
+    const validation = await validateTenantSlug(tenantParam);
 
     return NextResponse.json({
       isValid: validation.isValid,
@@ -36,33 +36,4 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Explicitly disable other HTTP methods
-export async function POST() {
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for tenant validation.' },
-    { status: 405 }
-  );
-}
-
-export async function PUT() {
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for tenant validation.' },
-    { status: 405 }
-  );
-}
-
-export async function DELETE() {
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for tenant validation.' },
-    { status: 405 }
-  );
-}
-
-export async function PATCH() {
-  return NextResponse.json(
-    { error: 'Method not allowed. Use GET for tenant validation.' },
-    { status: 405 }
-  );
 }

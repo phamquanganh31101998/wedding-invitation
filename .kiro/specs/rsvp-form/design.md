@@ -96,7 +96,6 @@ export interface RSVPData {
   relationship: string; // NEW: Guest's relationship with couple
   attendance: 'yes' | 'no' | 'maybe';
   message?: string;
-  submittedAt: string;
 }
 ```
 
