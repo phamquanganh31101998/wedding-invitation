@@ -1,4 +1,4 @@
-import { getTenant, getTenantBySlug } from './database';
+import { getTenantBySlug } from './database';
 import { TenantValidationResult, TenantSlugLookup } from '@/types';
 
 /**
@@ -37,7 +37,7 @@ export function extractTenantFromPath(pathname: string): string | null {
  * Validates if a tenant slug is valid and exists
  * Returns validation result with error details and database ID
  */
-export async function validateTenantId(
+export async function validateTenantSlug(
   slug: string | null
 ): Promise<TenantValidationResult> {
   if (!slug) {
@@ -180,62 +180,4 @@ export function extractTenantFromRequest(url: string): string | null {
     console.error('Error parsing URL for tenant extraction:', error);
     return null;
   }
-}
-
-/**
- * Handles tenant identification with fallback logic
- */
-export async function identifyTenant(pathname: string): Promise<{
-  tenantId: string | null; // slug
-  tenantDbId: number | null; // database ID
-  isValid: boolean;
-  error?: string;
-  shouldFallback: boolean;
-}> {
-  const extractedSlug = extractTenantFromPath(pathname);
-
-  // If no tenant slug in path, use default
-  if (!extractedSlug) {
-    return {
-      tenantId: null,
-      tenantDbId: null,
-      isValid: true,
-      shouldFallback: false,
-    };
-  }
-
-  // Validate the extracted tenant slug
-  const validation = await validateTenantId(extractedSlug);
-
-  if (validation.isValid) {
-    return {
-      tenantId: extractedSlug,
-      tenantDbId: validation.tenantId || null,
-      isValid: true,
-      shouldFallback: false,
-    };
-  }
-
-  // Invalid tenant - suggest fallback
-  return {
-    tenantId: extractedSlug,
-    tenantDbId: null,
-    isValid: false,
-    error: validation.error,
-    shouldFallback: true,
-  };
-}
-
-/**
- * Creates a tenant-aware redirect URL using slug
- */
-export function createTenantRedirectUrl(
-  tenantSlug: string | null,
-  targetPath: string = '/'
-): string {
-  if (isDefaultTenant(tenantSlug)) {
-    return targetPath;
-  }
-
-  return getTenantPath(tenantSlug!, targetPath);
 }

@@ -12,7 +12,7 @@ import {
 } from '@chakra-ui/react';
 
 import HomeContent from '@/components/HomeContent';
-import { validateTenantId } from '@/utils/tenant';
+import { validateTenantSlug } from '@/utils/tenant';
 import Link from 'next/link';
 
 interface TenantPageProps {
@@ -71,8 +71,8 @@ function TenantErrorFallback({
 export default async function TenantPage({ params }: TenantPageProps) {
   const { tenant: tenantId } = await params;
 
-  // Validate tenant ID format and existence
-  const validation = await validateTenantId(tenantId);
+  // Validate tenant slug format and existence
+  const validation = await validateTenantSlug(tenantId);
 
   if (!validation.isValid) {
     // For invalid tenant IDs, show error page instead of 404
@@ -104,7 +104,7 @@ export async function generateMetadata({ params }: TenantPageProps) {
   }
 
   try {
-    const validation = await validateTenantId(tenantId);
+    const validation = await validateTenantSlug(tenantId);
 
     if (validation.isValid) {
       return {

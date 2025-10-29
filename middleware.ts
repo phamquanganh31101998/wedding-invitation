@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { extractTenantFromRequest, validateTenantId } from '@/utils/tenant';
+import { extractTenantFromRequest, validateTenantSlug } from '@/utils/tenant';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,8 +23,8 @@ export async function middleware(request: NextRequest) {
   }
 
   try {
-    // Validate the tenant ID
-    const validation = await validateTenantId(tenantId);
+    // Validate the tenant slug
+    const validation = await validateTenantSlug(tenantId);
 
     if (validation.isValid) {
       // Tenant is valid, allow request to proceed
