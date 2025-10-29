@@ -91,39 +91,42 @@ export const rsvpValidationSchema = yup.object({
     ),
 });
 
-// Tenant ID validation schema
+// Tenant slug validation schema (renamed from tenantId for clarity)
 export const tenantIdValidationSchema = yup.object({
   tenantId: yup
     .string()
-    .required('Tenant ID is required')
+    .required('Tenant slug is required')
     .trim()
     .min(
       DB_CONSTRAINTS.TENANT_ID_MIN_LENGTH,
-      `Tenant ID must be at least ${DB_CONSTRAINTS.TENANT_ID_MIN_LENGTH} characters`
+      `Tenant slug must be at least ${DB_CONSTRAINTS.TENANT_ID_MIN_LENGTH} characters`
     )
     .max(
       DB_CONSTRAINTS.TENANT_ID_MAX_LENGTH,
-      `Tenant ID must be no more than ${DB_CONSTRAINTS.TENANT_ID_MAX_LENGTH} characters`
+      `Tenant slug must be no more than ${DB_CONSTRAINTS.TENANT_ID_MAX_LENGTH} characters`
     )
     .matches(
       /^[a-zA-Z0-9-_]+$/,
-      'Tenant ID can only contain letters, numbers, hyphens, and underscores'
+      'Tenant slug can only contain letters, numbers, hyphens, and underscores'
     )
     .test(
       'no-consecutive-hyphens',
-      'Tenant ID cannot contain consecutive hyphens',
+      'Tenant slug cannot contain consecutive hyphens',
       (value) => {
         return value ? !value.includes('--') : true;
       }
     )
     .test(
       'no-start-end-hyphen',
-      'Tenant ID cannot start or end with a hyphen',
+      'Tenant slug cannot start or end with a hyphen',
       (value) => {
         return value ? !value.startsWith('-') && !value.endsWith('-') : true;
       }
     ),
 });
+
+// Alias for backward compatibility
+export const tenantSlugValidationSchema = tenantIdValidationSchema;
 
 // Guest ID validation for API endpoints
 export const guestIdValidationSchema = yup.object({

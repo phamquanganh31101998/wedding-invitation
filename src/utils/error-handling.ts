@@ -212,6 +212,84 @@ export function handleGuestNotFoundError(guestId: string | number): ApiError {
   );
 }
 
+// Handle invalid slug errors
+export function handleInvalidSlugError(slug: string): ApiError {
+  return createApiError(
+    ErrorType.VALIDATION,
+    'Invalid tenant slug',
+    400,
+    `The tenant slug '${slug}' is not valid. Slugs can only contain letters, numbers, hyphens, and underscores.`,
+    ErrorSeverity.LOW,
+    'INVALID_SLUG'
+  );
+}
+
+// Handle slug not found errors
+export function handleSlugNotFoundError(slug: string): ApiError {
+  return createApiError(
+    ErrorType.NOT_FOUND,
+    'Tenant slug not found',
+    404,
+    `No tenant found with slug '${slug}'. Please check the URL and try again.`,
+    ErrorSeverity.MEDIUM,
+    'SLUG_NOT_FOUND'
+  );
+}
+
+// Handle database ID conversion errors
+export function handleIdConversionError(input: string): ApiError {
+  return createApiError(
+    ErrorType.VALIDATION,
+    'Invalid ID format',
+    400,
+    `The provided ID '${input}' is not a valid integer.`,
+    ErrorSeverity.LOW,
+    'INVALID_ID_FORMAT'
+  );
+}
+
+// Migration helper: Handle both old string IDs and new integer IDs
+export function handleMigrationIdError(
+  id: string | number,
+  context: string = 'ID'
+): ApiError {
+  if (typeof id === 'string') {
+    // Try to parse as integer
+    const parsed = parseInt(id, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      return createApiError(
+        ErrorType.VALIDATION,
+        `Invalid ${context} format`,
+        400,
+        `The provided ${context} '${id}' must be a positive integer.`,
+        ErrorSeverity.LOW,
+        'MIGRATION_ID_ERROR'
+      );
+    }
+  }
+
+  if (typeof id === 'number' && (id <= 0 || !Number.isInteger(id))) {
+    return createApiError(
+      ErrorType.VALIDATION,
+      `Invalid ${context} format`,
+      400,
+      `The provided ${context} '${id}' must be a positive integer.`,
+      ErrorSeverity.LOW,
+      'MIGRATION_ID_ERROR'
+    );
+  }
+
+  // This shouldn't happen, but just in case
+  return createApiError(
+    ErrorType.VALIDATION,
+    `Invalid ${context}`,
+    400,
+    `The provided ${context} is not valid.`,
+    ErrorSeverity.LOW,
+    'MIGRATION_ID_ERROR'
+  );
+}
+
 // Handle system errors
 export function handleSystemError(error: Error): ApiError {
   // Log the full error for debugging (in production, use proper logging)
@@ -336,5 +414,40 @@ export class InputSanitizer {
       .replace(/javascript:/gi, '') // Remove javascript: protocol
       .replace(/on\w+\s*=/gi, '') // Remove event handlers
       .substring(0, 1000); // Limit length
+  }
+
+  // Validate tenant slug format
+  static validateSlugFormat(slug: string): boolean {
+    if (!slug) return false;
+
+    // Check basic format
+    if (!/^[a-zA-Z0-9-_]+$/.test(slug)) return false;
+
+    // Check length
+    if (slug.length < 2 || slug.length > 50) return false;
+
+    // Check for consecutive hyphens
+    if (slug.includes('--')) return false;
+
+    // Check start/end hyphens
+    if (slug.startsWith('-') || slug.endsWith('-')) return false;
+
+    return true;
+  }
+
+  // Validate guest ID format
+  static validateGuestIdFormat(id: string | number): boolean {
+    if (typeof id === 'number') {
+      return id > 0 && id <= 2147483647 && Number.isInteger(id);
+    }
+
+    if (typeof id === 'string') {
+      const num = parseInt(id, 10);
+      return (
+        !isNaN(num) && num > 0 && num <= 2147483647 && num.toString() === id
+      );
+    }
+
+    return false;
   }
 }
