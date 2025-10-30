@@ -49,7 +49,7 @@ export function TenantProvider({
       try {
         // Load tenant configuration via API (this also validates tenant exists)
         const configResponse = await fetch(
-          `/api/config/tenant?tenant=${encodeURIComponent(tenantSlug)}`
+          `/api/tenant?tenant=${encodeURIComponent(tenantSlug)}`
         );
 
         if (!configResponse.ok) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getTenantBySlug } from '@/utils/database';
 import { TenantConfig } from '@/types';
-import { tenantSlugValidationSchema } from '../../rsvp/validation';
+import { tenantSlugValidationSchema } from '../rsvp/validation';
 import {
   handleApiError,
   InputSanitizer,

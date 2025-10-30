@@ -152,7 +152,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
         validateOnChange={false}
         onSubmit={handleSubmit}
       >
-        {({ values, errors, setFieldValue, isSubmitting, isValid }) => (
+        {({ values, errors, setFieldValue, isSubmitting }) => (
           <Form>
             <VStack spacing={{ base: 4, sm: 6 }} align="stretch">
               {/* Form Error Display */}
@@ -206,7 +206,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
                 fontSize={{ base: 'md', sm: 'lg' }}
                 isLoading={isSubmitting}
                 loadingText="Đang gửi RSVP..."
-                isDisabled={!isValid || isSubmitting}
+                isDisabled={isSubmitting}
                 _hover={{
                   transform: 'translateY(-1px)',
                   boxShadow: 'lg',
