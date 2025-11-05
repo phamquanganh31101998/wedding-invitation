@@ -28,10 +28,10 @@ export async function getFileById(
 }
 
 /**
- * Get all files for a tenant by type
+ * Get all files for a tenant by type using tenant slug
  */
 export async function getFilesByTenantAndType(
-  tenantId: number,
+  tenantSlug: string,
   type?: string
 ): Promise<DatabaseRecord[]> {
   const db = ensureDatabaseConnection();
@@ -41,22 +41,24 @@ export async function getFilesByTenantAndType(
     let result;
     if (type) {
       result = await db`
-        SELECT id, tenant_id, type, url, name, display_order, created_at
-        FROM files 
-        WHERE tenant_id = ${tenantId} AND type = ${type}
-        ORDER BY display_order ASC, created_at ASC
+        SELECT f.id, f.tenant_id, f.type, f.url, f.name, f.display_order, f.created_at
+        FROM files f
+        INNER JOIN tenants t ON f.tenant_id = t.id
+        WHERE t.slug = ${tenantSlug} AND t.is_active = true AND f.type = ${type}
+        ORDER BY f.display_order ASC, f.created_at ASC
       `;
     } else {
       result = await db`
-        SELECT id, tenant_id, type, url, name, display_order, created_at
-        FROM files 
-        WHERE tenant_id = ${tenantId}
-        ORDER BY type ASC, display_order ASC, created_at ASC
+        SELECT f.id, f.tenant_id, f.type, f.url, f.name, f.display_order, f.created_at
+        FROM files f
+        INNER JOIN tenants t ON f.tenant_id = t.id
+        WHERE t.slug = ${tenantSlug} AND t.is_active = true
+        ORDER BY f.type ASC, f.display_order ASC, f.created_at ASC
       `;
     }
     return result as DatabaseRecord[];
   } catch (error) {
-    console.error('Failed to get files by tenant and type:', error);
-    throw new Error(`Failed to get files by tenant and type: ${error}`);
+    console.error('Failed to get files by tenant slug and type:', error);
+    throw new Error(`Failed to get files by tenant slug and type: ${error}`);
   }
 }

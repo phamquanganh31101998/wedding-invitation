@@ -43,7 +43,3 @@ export interface AudioContextValue {
     loadMusic: () => Promise<void>;
   };
 }
-
-export interface MusicPlayerProps {
-  theme?: 'light' | 'dark';
-}

@@ -1,7 +1,7 @@
 'use client';
 
 import Layout from '@/components/layout/Layout';
-import { FloatingMusicButton } from '@/components/music/MusicPlayer';
+import { FloatingMusicButton } from '@/features/music';
 import CountdownSection from '@/components/section/CountdownSection';
 import RSVPSection from '@/components/section/RSVPSection';
 import {

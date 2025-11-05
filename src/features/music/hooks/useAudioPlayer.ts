@@ -1,18 +1,15 @@
 'use client';
 import { useEffect, useRef } from 'react';
-import { useAppSelector, useAppDispatch } from '@/store/hooks';
-import { setError, nextTrack } from '@/store/slices/audioSlice';
+import { useAudioContext } from '../components/AudioContext';
 
 /**
  * Custom hook that manages the actual HTML5 audio element
- * and syncs it with Redux state
+ * and syncs it with AudioContext state
  */
 export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const dispatch = useAppDispatch();
-  const { isPlaying, currentTrack, hasError } = useAppSelector(
-    (state) => state.audio
-  );
+  const { state, controls } = useAudioContext();
+  const { isPlaying, currentTrack, hasError } = state;
 
   // Initialize audio element
   useEffect(() => {
@@ -22,12 +19,15 @@ export const useAudioPlayer = () => {
 
       // Add error handler
       audioRef.current.addEventListener('error', () => {
-        dispatch(setError(true));
+        // Handle error - could add error state management here if needed
+        console.error('Audio playback error');
       });
 
       // Add ended handler - auto play next track
       audioRef.current.addEventListener('ended', () => {
-        dispatch(nextTrack());
+        // For now, just pause when track ends
+        // Could implement next track functionality here if needed
+        controls.pause();
       });
     }
 
@@ -37,7 +37,7 @@ export const useAudioPlayer = () => {
         audioRef.current.src = '';
       }
     };
-  }, [dispatch]);
+  }, [controls]);
 
   // Update audio source when current track changes
   useEffect(() => {
@@ -58,14 +58,14 @@ export const useAudioPlayer = () => {
       if (audioRef.current.readyState >= 2) {
         // HAVE_CURRENT_DATA
         audioRef.current.play().catch(() => {
-          dispatch(setError(true));
+          console.error('Failed to play audio');
         });
       } else {
         // Wait for audio to be ready
         const handleCanPlay = () => {
           if (audioRef.current && isPlaying) {
             audioRef.current.play().catch(() => {
-              dispatch(setError(true));
+              console.error('Failed to play audio');
             });
           }
           audioRef.current?.removeEventListener('canplay', handleCanPlay);
@@ -75,7 +75,7 @@ export const useAudioPlayer = () => {
     } else {
       audioRef.current.pause();
     }
-  }, [isPlaying, currentTrack, hasError, dispatch]);
+  }, [isPlaying, currentTrack, hasError]);
 
   return audioRef.current;
 };

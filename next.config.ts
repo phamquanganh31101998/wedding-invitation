@@ -1,14 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: '/data/musics/:path*',
-        destination: '/api/music/serve/:path*',
-      },
-    ];
-  },
+  // Configuration for the wedding invitation app
 };
 
 export default nextConfig;

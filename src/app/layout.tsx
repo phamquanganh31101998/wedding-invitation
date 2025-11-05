@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ChakraProviders } from '@/components/providers/ChakraProviders';
-import { ReduxProvider } from '@/components/providers/ReduxProvider';
 import { QueryProvider } from '@/components/providers/QueryProvider';
 import { TenantProvider } from '@/components/providers/TenantProvider';
-import { AudioProvider } from '@/components/music/MusicPlayer';
+import { AudioProvider } from '@/features/music';
 import './globals.css';
 
 const geistSans = Geist({
@@ -33,13 +32,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          <ReduxProvider>
-            <ChakraProviders>
-              <TenantProvider>
-                <AudioProvider>{children}</AudioProvider>
-              </TenantProvider>
-            </ChakraProviders>
-          </ReduxProvider>
+          <ChakraProviders>
+            <TenantProvider>
+              <AudioProvider>{children}</AudioProvider>
+            </TenantProvider>
+          </ChakraProviders>
         </QueryProvider>
       </body>
     </html>

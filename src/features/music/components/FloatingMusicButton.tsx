@@ -9,17 +9,21 @@ import {
   VisuallyHidden,
 } from '@chakra-ui/react';
 import { FaPlay, FaPause, FaExclamationTriangle } from 'react-icons/fa';
-import { MusicPlayerProps } from '@/types';
+
 import { useAudioContext } from './AudioContext';
+import { useAudioPlayer } from '../hooks/useAudioPlayer';
 
 /**
  * Floating music button component that provides play/pause controls
  * Positioned at bottom-left of the screen with smooth animations
  * Fully integrated with Chakra UI theme system
  */
-export const FloatingMusicButton: React.FC<MusicPlayerProps> = () => {
+export const FloatingMusicButton: React.FC = () => {
   const { state, controls } = useAudioContext();
   const liveRegionRef = useRef<HTMLDivElement>(null);
+
+  // Initialize audio player
+  useAudioPlayer();
   const previousPlayingState = useRef<boolean>(state.isPlaying);
   const previousTrack = useRef<string | null>(
     state.currentTrack?.title || null
