@@ -3,8 +3,8 @@ import {
   createGuest,
   getGuestById,
   updateGuest,
-  getTenantBySlug,
-} from '@/utils/database';
+} from '@/repositories/guest-repository';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
 import { RSVPData } from '@/types';
 import { toCamelCase, toSnakeCase } from '@/utils/case-conversion';
 

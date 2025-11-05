@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 
 // Type definitions for database results
-interface DatabaseRecord {
+export interface DatabaseRecord {
   [key: string]: unknown;
 }
 
@@ -17,7 +17,7 @@ if (process.env.DATABASE_URL) {
 let isInitialized = false;
 
 // Helper function to ensure database connection is available
-function ensureDatabaseConnection() {
+export function ensureDatabaseConnection() {
   if (!sql) {
     throw new Error(
       'Database connection not available. Please check DATABASE_URL environment variable.'
@@ -27,7 +27,7 @@ function ensureDatabaseConnection() {
 }
 
 // Initialize database tables automatically
-async function ensureInitialized() {
+export async function ensureInitialized() {
   if (isInitialized) return;
 
   const db = ensureDatabaseConnection();
@@ -47,6 +47,8 @@ async function ensureInitialized() {
         theme_primary_color VARCHAR(7) DEFAULT '#E53E3E',
         theme_secondary_color VARCHAR(7) DEFAULT '#FED7D7',
         is_active BOOLEAN DEFAULT true,
+        email VARCHAR(255),
+        phone VARCHAR(20),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -72,6 +74,22 @@ async function ensureInitialized() {
       )
     `;
 
+    // Create files table
+    await db`
+      CREATE TABLE IF NOT EXISTS files (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER NOT NULL,
+        type VARCHAR(50) NOT NULL,
+        url TEXT NOT NULL,
+        name TEXT,
+        display_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        
+        -- Foreign key constraint
+        CONSTRAINT files_tenant_id_fkey FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE
+      )
+    `;
+
     // Create indexes for better performance
     await db`CREATE INDEX IF NOT EXISTS idx_tenants_is_active ON tenants USING BTREE (is_active)`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_slug ON tenants USING BTREE (slug)`;
@@ -79,6 +97,8 @@ async function ensureInitialized() {
     await db`CREATE INDEX IF NOT EXISTS idx_guests_attendance ON guests USING BTREE (attendance)`;
     await db`CREATE INDEX IF NOT EXISTS idx_guests_tenant_id ON guests USING BTREE (tenant_id)`;
     await db`CREATE UNIQUE INDEX IF NOT EXISTS guests_pkey ON guests USING BTREE (id)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_files_tenant_id ON files USING BTREE (tenant_id)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_files_type ON files USING BTREE (type)`;
 
     // Ensure default tenant exists
     await ensureDefaultTenant();
@@ -111,96 +131,6 @@ async function ensureDefaultTenant() {
     }
   } catch (error) {
     console.error('Failed to ensure default tenant:', error);
-  }
-}
-
-export async function getTenantBySlug(slug: string) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      SELECT * FROM tenants 
-      WHERE slug = ${slug} AND is_active = true
-    `;
-    return (result as DatabaseRecord[])[0] || null;
-  } catch (error) {
-    console.error('Failed to get tenant by slug:', error);
-    throw new Error(`Failed to get tenant by slug: ${error}`);
-  }
-}
-
-// Guest operations (formerly RSVP operations)
-export async function createGuest(guestData: {
-  tenantId: number;
-  name: string;
-  relationship: string;
-  attendance: 'yes' | 'no' | 'maybe';
-  message?: string;
-}) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      INSERT INTO guests (tenant_id, name, relationship, attendance, message)
-      VALUES (${guestData.tenantId}, ${guestData.name}, ${guestData.relationship}, 
-              ${guestData.attendance}, ${guestData.message || null})
-      RETURNING *
-    `;
-    return (result as DatabaseRecord[])[0];
-  } catch (error) {
-    console.error('Failed to create guest:', error);
-    throw new Error(`Failed to create guest: ${error}`);
-  }
-}
-
-export async function getGuestById(tenantId: number, guestId: number) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      SELECT id, name, relationship, attendance, message
-      FROM guests 
-      WHERE tenant_id = ${tenantId} AND id = ${guestId}
-    `;
-    return (result as DatabaseRecord[])[0] || null;
-  } catch (error) {
-    console.error('Failed to get guest by ID:', error);
-    throw new Error(`Failed to get guest by ID: ${error}`);
-  }
-}
-
-export async function updateGuest(
-  tenantId: number,
-  guestId: number,
-  guestData: {
-    name: string;
-    relationship: string;
-    attendance: 'yes' | 'no' | 'maybe';
-    message?: string;
-  }
-) {
-  const db = ensureDatabaseConnection();
-  await ensureInitialized();
-
-  try {
-    const result = await db`
-      UPDATE guests 
-      SET 
-        name = ${guestData.name},
-        relationship = ${guestData.relationship},
-        attendance = ${guestData.attendance},
-        message = ${guestData.message || null},
-        updated_at = CURRENT_TIMESTAMP
-      WHERE tenant_id = ${tenantId} AND id = ${guestId}
-      RETURNING *
-    `;
-    return (result as DatabaseRecord[])[0];
-  } catch (error) {
-    console.error('Failed to update guest:', error);
-    throw new Error(`Failed to update guest: ${error}`);
   }
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getGuestById, getTenantBySlug } from '@/utils/database';
+import { getGuestById } from '@/repositories/guest-repository';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
 import { RSVPData } from '@/types';
 import {
   guestIdValidationSchema,
