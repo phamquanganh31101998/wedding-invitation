@@ -10,6 +10,7 @@ import {
   InputSanitizer,
   handleGuestNotFoundError,
 } from '@/utils/error-handling';
+import { toCamelCase } from '@/utils/case-conversion';
 
 export async function GET(request: NextRequest) {
   try {
@@ -86,14 +87,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Transform database response to match frontend expectations
-    const guest: RSVPData = {
-      id: dbGuest.id as number,
-      name: dbGuest.name as string,
-      relationship: dbGuest.relationship as string,
-      attendance: dbGuest.attendance as 'yes' | 'no' | 'maybe',
-      message: (dbGuest.message as string) || '',
-    };
+    // Transform database response (snake_case) to client format (camelCase)
+    const guest: RSVPData = toCamelCase<RSVPData>(dbGuest);
 
     const response = {
       data: guest,

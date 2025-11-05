@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ChakraProviders } from '@/components/providers/ChakraProviders';
 import { ReduxProvider } from '@/components/providers/ReduxProvider';
+import { QueryProvider } from '@/components/providers/QueryProvider';
 import { TenantProvider } from '@/components/providers/TenantProvider';
 import { AudioProvider } from '@/components/music/MusicPlayer';
 import './globals.css';
@@ -31,13 +32,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ReduxProvider>
-          <ChakraProviders>
-            <TenantProvider>
-              <AudioProvider>{children}</AudioProvider>
-            </TenantProvider>
-          </ChakraProviders>
-        </ReduxProvider>
+        <QueryProvider>
+          <ReduxProvider>
+            <ChakraProviders>
+              <TenantProvider>
+                <AudioProvider>{children}</AudioProvider>
+              </TenantProvider>
+            </ChakraProviders>
+          </ReduxProvider>
+        </QueryProvider>
       </body>
     </html>
   );

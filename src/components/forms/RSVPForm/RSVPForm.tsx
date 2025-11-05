@@ -13,6 +13,7 @@ import { Formik, Form, FormikHelpers } from 'formik';
 import { useState } from 'react';
 import { RSVPFormData, RSVPData } from '@/types';
 import { validationSchema } from './validation';
+import { useSubmitGuest } from '@/features/guest/services/guest.hooks';
 import RSVPSuccessAlert from './RSVPSuccessAlert';
 import MessageField from './MessageField';
 import NameField from './NameField';
@@ -52,45 +53,9 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
 
   const toast = useToast();
 
-  const handleSubmit = async (
-    values: RSVPFormData,
-    { setSubmitting }: FormikHelpers<RSVPFormData>
-  ) => {
-    // Clear previous errors
-    setFormState((prev) => ({ ...prev, submitError: null }));
-
-    try {
-      // Build URL with tenant context and guest ID
-      let url = '/api/rsvp';
-      const params = new URLSearchParams();
-
-      if (tenantSlug) {
-        params.append('tenant', tenantSlug);
-      }
-
-      if (guestId) {
-        params.append('guest', guestId.toString());
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit RSVP');
-      }
-
-      const result = await response.json();
-
+  // Use React Query mutation for form submission
+  const submitMutation = useSubmitGuest({
+    onSuccess: (data) => {
       setFormState((prev) => ({
         ...prev,
         isSubmitted: true,
@@ -108,11 +73,9 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
         isClosable: true,
       });
 
-      onSuccess?.(result.data);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
-
+      onSuccess?.(data);
+    },
+    onError: (errorMessage) => {
       setFormState((prev) => ({
         ...prev,
         submitError: errorMessage,
@@ -127,6 +90,22 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
       });
 
       onError?.(errorMessage);
+    },
+  });
+
+  const handleSubmit = async (
+    values: RSVPFormData,
+    { setSubmitting }: FormikHelpers<RSVPFormData>
+  ) => {
+    // Clear previous errors
+    setFormState((prev) => ({ ...prev, submitError: null }));
+
+    try {
+      await submitMutation.mutateAsync({
+        data: values,
+        guestId,
+        tenantSlug,
+      });
     } finally {
       setSubmitting(false);
     }
