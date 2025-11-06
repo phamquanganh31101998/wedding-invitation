@@ -90,6 +90,29 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     setError: (hasError: boolean) => {
       setAudioState((prev) => ({ ...prev, hasError, isPlaying: false }));
     },
+    nextTrack: () => {
+      setAudioState((prev) => {
+        if (prev.playlist.length === 0) return prev;
+
+        // Calculate next track index (loop back to 0 if at end)
+        const nextIndex = (prev.currentTrackIndex + 1) % prev.playlist.length;
+        const nextTrack = prev.playlist[nextIndex];
+
+        console.log(
+          `Switching from track ${prev.currentTrackIndex} to track ${nextIndex}:`,
+          nextTrack?.title
+        );
+
+        return {
+          ...prev,
+          currentTrackIndex: nextIndex,
+          currentTrack: nextTrack,
+          hasError: false, // Clear any errors when switching tracks
+          // Preserve the playing state - if music was playing, keep it playing
+          isPlaying: prev.isPlaying,
+        };
+      });
+    },
     loadMusic: async () => {
       await refetch();
     },

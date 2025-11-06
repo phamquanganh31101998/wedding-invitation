@@ -41,6 +41,7 @@ export interface AudioContextValue {
     play: () => void;
     pause: () => void;
     setError: (hasError: boolean) => void;
+    nextTrack: () => void;
     loadMusic: () => Promise<void>;
   };
 }
