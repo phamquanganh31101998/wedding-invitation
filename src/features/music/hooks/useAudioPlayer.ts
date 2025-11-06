@@ -8,6 +8,8 @@ import { useAudioContext } from '../components/AudioContext';
  */
 export const useAudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const savedPositionRef = useRef<number>(0);
+  const currentTrackIdRef = useRef<string | null>(null);
   const { state, controls } = useAudioContext();
   const { isPlaying, currentTrack, hasError, playlist } = state;
 
@@ -26,20 +28,20 @@ export const useAudioPlayer = () => {
     };
   }, []);
 
-  // Handle track ended event (separate effect to get current playlist state)
+  // Handle track ended event
   useEffect(() => {
     if (!audioRef.current) return;
 
     const handleTrackEnded = () => {
       console.log('🎵 Track ended! Playlist length:', playlist.length);
 
-      // Only auto-advance if there are multiple tracks in playlist
+      // Reset saved position since track ended naturally
+      savedPositionRef.current = 0;
+
       if (playlist.length > 1) {
         console.log('🎵 Multiple tracks detected, advancing to next track');
         controls.nextTrack();
-        // Keep playing state true so the next track auto-plays
       } else if (playlist.length === 1) {
-        // If only one track, replay it from the beginning
         console.log('🎵 Single track detected, replaying from start');
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
@@ -49,7 +51,6 @@ export const useAudioPlayer = () => {
           });
         }
       } else {
-        // No tracks available, just pause
         console.log('🎵 No tracks available, pausing');
         controls.pause();
       }
@@ -62,57 +63,74 @@ export const useAudioPlayer = () => {
     };
   }, [playlist.length, controls]);
 
-  // Update audio source when current track changes
+  // Handle track changes
   useEffect(() => {
-    if (audioRef.current && currentTrack) {
-      console.log('Loading new track:', currentTrack.title);
+    if (!audioRef.current || !currentTrack) return;
 
-      // Validate URL before setting
-      if (!currentTrack.url || currentTrack.url.trim() === '') {
-        console.error('Invalid track URL:', currentTrack.url);
-        controls.setError(true);
-        return;
-      }
+    // Validate URL
+    if (!currentTrack.url || currentTrack.url.trim() === '') {
+      console.error('Invalid track URL:', currentTrack.url);
+      controls.setError(true);
+      return;
+    }
 
+    // Check if this is a new track
+    const isNewTrack = currentTrackIdRef.current !== currentTrack.id;
+
+    if (isNewTrack) {
+      console.log('🎵 Loading new track:', currentTrack.title);
+      // Reset position for new tracks
+      savedPositionRef.current = 0;
+      currentTrackIdRef.current = currentTrack.id;
+
+      // Load new track
       audioRef.current.src = currentTrack.url;
       audioRef.current.load();
-
-      // If music should be playing, start playing the new track once it's loaded
-      if (isPlaying) {
-        const handleCanPlay = () => {
-          if (audioRef.current && isPlaying) {
-            console.log('Auto-playing new track:', currentTrack.title);
-            audioRef.current.play().catch((error) => {
-              console.error('Failed to auto-play new track:', error);
-              controls.pause();
-            });
-          }
-          audioRef.current?.removeEventListener('canplay', handleCanPlay);
-        };
-
-        audioRef.current.addEventListener('canplay', handleCanPlay);
-      }
+    } else {
+      console.log('🎵 Same track, no need to reload');
     }
-  }, [currentTrack, controls, isPlaying]);
+  }, [currentTrack, controls]);
 
-  // Handle play/pause state changes (but not track changes, those are handled above)
+  // Handle play/pause state changes
   useEffect(() => {
     if (!audioRef.current || !currentTrack || hasError) {
       return;
     }
 
     if (isPlaying) {
-      // Only play if the audio is ready (to avoid conflicts with track loading)
-      if (audioRef.current.readyState >= 2) {
-        console.log('Playing track:', currentTrack?.title);
+      const playAudio = () => {
+        if (!audioRef.current) return;
+
+        // Restore saved position if we have one
+        if (savedPositionRef.current > 0) {
+          console.log('🔄 Restoring position:', savedPositionRef.current);
+          audioRef.current.currentTime = savedPositionRef.current;
+          savedPositionRef.current = 0; // Clear after restoring
+        }
+
+        console.log('▶️ Playing from position:', audioRef.current.currentTime);
         audioRef.current.play().catch((error) => {
           console.error('Play failed:', error);
           controls.pause();
         });
+      };
+
+      // Play immediately if ready, otherwise wait
+      if (audioRef.current.readyState >= 2) {
+        playAudio();
+      } else {
+        const handleCanPlay = () => {
+          playAudio();
+          audioRef.current?.removeEventListener('canplay', handleCanPlay);
+        };
+        audioRef.current.addEventListener('canplay', handleCanPlay);
       }
-      // If not ready, the canplay event handler in the track change effect will handle it
     } else {
-      console.log('Pausing audio');
+      // Save current position before pausing
+      if (audioRef.current.currentTime > 0) {
+        savedPositionRef.current = audioRef.current.currentTime;
+        console.log('⏸️ Pausing at position:', savedPositionRef.current);
+      }
       audioRef.current.pause();
     }
   }, [isPlaying, currentTrack, hasError, controls]);
