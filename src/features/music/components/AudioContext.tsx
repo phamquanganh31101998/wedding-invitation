@@ -78,10 +78,17 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   // Audio control functions
   const controls = {
     play: () => {
-      setAudioState((prev) => ({ ...prev, isPlaying: true }));
+      setAudioState((prev) => ({
+        ...prev,
+        isPlaying: true,
+        hasError: false, // Clear any previous errors when trying to play
+      }));
     },
     pause: () => {
       setAudioState((prev) => ({ ...prev, isPlaying: false }));
+    },
+    setError: (hasError: boolean) => {
+      setAudioState((prev) => ({ ...prev, hasError, isPlaying: false }));
     },
     loadMusic: async () => {
       await refetch();

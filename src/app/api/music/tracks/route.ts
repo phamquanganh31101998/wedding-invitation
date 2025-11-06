@@ -98,7 +98,7 @@ export async function GET(
         file.name || `track-${file.id}`
       );
 
-      return {
+      const track = {
         id: file.id.toString(),
         title,
         artist,
@@ -106,6 +106,8 @@ export async function GET(
         duration: 0, // We'll set this to 0 for now, could be enhanced later
         displayOrder: file.displayOrder,
       };
+
+      return track;
     });
 
     // Sort tracks by display order

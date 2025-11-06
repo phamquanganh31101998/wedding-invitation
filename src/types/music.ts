@@ -40,6 +40,7 @@ export interface AudioContextValue {
   controls: {
     play: () => void;
     pause: () => void;
+    setError: (hasError: boolean) => void;
     loadMusic: () => Promise<void>;
   };
 }

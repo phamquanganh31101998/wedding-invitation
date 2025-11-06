@@ -11,22 +11,14 @@ export const useAudioPlayer = () => {
   const { state, controls } = useAudioContext();
   const { isPlaying, currentTrack, hasError } = state;
 
-  // Initialize audio element
+  // Initialize audio element once
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.preload = 'metadata';
 
-      // Add error handler
-      audioRef.current.addEventListener('error', () => {
-        // Handle error - could add error state management here if needed
-        console.error('Audio playback error');
-      });
-
-      // Add ended handler - auto play next track
+      // Simple ended handler
       audioRef.current.addEventListener('ended', () => {
-        // For now, just pause when track ends
-        // Could implement next track functionality here if needed
         controls.pause();
       });
     }
@@ -42,40 +34,34 @@ export const useAudioPlayer = () => {
   // Update audio source when current track changes
   useEffect(() => {
     if (audioRef.current && currentTrack) {
+      // Validate URL before setting
+      if (!currentTrack.url || currentTrack.url.trim() === '') {
+        console.error('Invalid track URL:', currentTrack.url);
+        controls.setError(true);
+        return;
+      }
+
       audioRef.current.src = currentTrack.url;
       audioRef.current.load();
     }
-  }, [currentTrack]);
+  }, [currentTrack, controls]);
 
   // Handle play/pause state changes
   useEffect(() => {
-    if (!audioRef.current || !currentTrack) {
+    if (!audioRef.current || !currentTrack || hasError) {
       return;
     }
 
-    if (isPlaying && !hasError) {
-      // Check if audio is ready to play
-      if (audioRef.current.readyState >= 2) {
-        // HAVE_CURRENT_DATA
-        audioRef.current.play().catch(() => {
-          console.error('Failed to play audio');
-        });
-      } else {
-        // Wait for audio to be ready
-        const handleCanPlay = () => {
-          if (audioRef.current && isPlaying) {
-            audioRef.current.play().catch(() => {
-              console.error('Failed to play audio');
-            });
-          }
-          audioRef.current?.removeEventListener('canplay', handleCanPlay);
-        };
-        audioRef.current.addEventListener('canplay', handleCanPlay);
-      }
+    if (isPlaying) {
+      audioRef.current.play().catch((error) => {
+        console.error('Play failed:', error);
+        controls.pause();
+      });
     } else {
+      console.log('Pausing audio');
       audioRef.current.pause();
     }
-  }, [isPlaying, currentTrack, hasError]);
+  }, [isPlaying, currentTrack, hasError, controls]);
 
   return audioRef.current;
 };
