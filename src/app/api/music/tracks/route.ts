@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { getFilesByTenantAndType } from '@/repositories/file-repository';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
+import { toCamelCase } from '@/utils/case-conversion';
+import { File } from '@/types';
 
 interface Track {
   id: string;
@@ -8,90 +10,117 @@ interface Track {
   artist?: string;
   url: string;
   duration: number;
+  displayOrder: number;
 }
 
-// Supported audio file extensions
-const SUPPORTED_FORMATS = ['.mp3', '.wav', '.ogg'];
+interface TrackErrorResponse {
+  error: string;
+  details?: string;
+}
 
 /**
- * Parse track metadata from filename
+ * Parse track metadata from filename or name
  * Supports formats like "Artist - Title.mp3" or "Title.mp3"
  */
-function parseTrackMetadata(filename: string): {
+function parseTrackMetadata(name: string): {
   title: string;
   artist?: string;
 } {
-  // Remove file extension
-  const nameWithoutExt = filename.replace(/\.[^/.]+$/, '');
+  if (!name) {
+    return { title: 'Unknown Track' };
+  }
 
-  // Check if filename contains " - " separator
+  // Remove file extension if present
+  const nameWithoutExt = name.replace(/\.[^/.]+$/, '');
+
+  // Check if name contains " - " separator
   if (nameWithoutExt.includes(' - ')) {
     const [artist, title] = nameWithoutExt.split(' - ', 2);
     return {
-      title: title.trim(),
-      artist: artist.trim(),
+      title: title.trim() || 'Unknown Track',
+      artist: artist.trim() || undefined,
     };
   }
 
   // No artist separator found, use entire name as title
   return {
-    title: nameWithoutExt.trim(),
+    title: nameWithoutExt.trim() || 'Unknown Track',
   };
 }
 
-/**
- * Generate unique ID for track based on filename
- */
-function generateTrackId(filename: string): string {
-  return Buffer.from(filename)
-    .toString('base64')
-    .replace(/[^a-zA-Z0-9]/g, '');
-}
-
 export async function GET(
-  _request: NextRequest
-): Promise<NextResponse<Track[] | { error: string }>> {
+  request: NextRequest
+): Promise<NextResponse<Track[] | TrackErrorResponse>> {
   try {
-    const musicFolderPath = path.join(process.cwd(), 'data', 'musics');
+    const { searchParams } = new URL(request.url);
+    const tenantParam = searchParams.get('tenant');
 
-    // Check if music folder exists
-    try {
-      await fs.access(musicFolderPath);
-    } catch {
-      return NextResponse.json(
-        { error: 'Music folder not found' },
-        { status: 404 }
-      );
+    // Use tenant slug directly (default to 'default' if not provided)
+    const tenantSlug = tenantParam || 'default';
+
+    // Validate tenant exists and is active (optional validation)
+    if (tenantParam) {
+      try {
+        const tenant = await getTenantBySlug(tenantParam);
+        if (!tenant || !tenant.is_active) {
+          return NextResponse.json(
+            {
+              error: 'Invalid tenant',
+              details: `Tenant '${tenantParam}' not found or inactive.`,
+            },
+            { status: 400 }
+          );
+        }
+      } catch (error) {
+        console.error('Error validating tenant:', error);
+        return NextResponse.json(
+          {
+            error: 'Failed to validate tenant',
+            details: error instanceof Error ? error.message : 'Unknown error',
+          },
+          { status: 500 }
+        );
+      }
     }
 
-    // Read all files in the music directory
-    const files = await fs.readdir(musicFolderPath);
+    // Get music files from database using tenant slug
+    const dbFiles = await getFilesByTenantAndType(tenantSlug, 'music');
 
-    // Filter for supported audio files
-    const audioFiles = files.filter((file) => {
-      const ext = path.extname(file).toLowerCase();
-      return SUPPORTED_FORMATS.includes(ext);
-    });
+    if (!dbFiles || dbFiles.length === 0) {
+      return NextResponse.json([]);
+    }
 
-    // Convert files to track objects
-    const tracks: Track[] = audioFiles.map((filename) => {
-      const { title, artist } = parseTrackMetadata(filename);
-      const id = generateTrackId(filename);
+    // Convert database records to client format and then to tracks
+    const files: File[] = dbFiles.map((dbFile) => toCamelCase<File>(dbFile));
 
-      return {
-        id,
+    const tracks: Track[] = files.map((file) => {
+      const { title, artist } = parseTrackMetadata(
+        file.name || `track-${file.id}`
+      );
+
+      const track = {
+        id: file.id.toString(),
         title,
         artist,
-        url: `/api/music/serve/${encodeURIComponent(filename)}`,
-        duration: 0, // We'll set this to 0 for now, could be enhanced to read actual duration
+        url: file.url, // This should be the @vercel/blob URL
+        duration: 0, // We'll set this to 0 for now, could be enhanced later
+        displayOrder: file.displayOrder,
       };
+
+      return track;
     });
+
+    // Sort tracks by display order
+    tracks.sort((a, b) => a.displayOrder - b.displayOrder);
 
     return NextResponse.json(tracks);
   } catch (error) {
-    console.error('Error reading music files:', error);
+    console.error('Error loading music tracks:', error);
     return NextResponse.json(
-      { error: 'Failed to load music tracks' },
+      {
+        error: 'Failed to load music tracks',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

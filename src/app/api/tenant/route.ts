@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getTenantBySlug } from '@/utils/database';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
 import { TenantConfig } from '@/types';
 import { tenantSlugValidationSchema } from '../rsvp/validation';
 import {

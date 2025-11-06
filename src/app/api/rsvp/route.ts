@@ -3,9 +3,10 @@ import {
   createGuest,
   getGuestById,
   updateGuest,
-  getTenantBySlug,
-} from '@/utils/database';
+} from '@/repositories/guest-repository';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
 import { RSVPData } from '@/types';
+import { toCamelCase, toSnakeCase } from '@/utils/case-conversion';
 
 interface DatabaseRecord {
   [key: string]: unknown;
@@ -71,12 +72,17 @@ export async function POST(request: NextRequest) {
       guestId = sanitizedGuestId;
     }
 
-    // Sanitize input data
+    // Convert client data (camelCase) to server format and sanitize
+    const serverBody = toSnakeCase<Record<string, unknown>>(body);
     const sanitizedBody = {
-      name: InputSanitizer.sanitizeString(body.name || ''),
-      relationship: InputSanitizer.sanitizeString(body.relationship || ''),
-      attendance: body.attendance,
-      message: InputSanitizer.sanitizeMessage(body.message || ''),
+      name: InputSanitizer.sanitizeString((serverBody.name as string) || ''),
+      relationship: InputSanitizer.sanitizeString(
+        (serverBody.relationship as string) || ''
+      ),
+      attendance: serverBody.attendance,
+      message: InputSanitizer.sanitizeMessage(
+        (serverBody.message as string) || ''
+      ),
     };
 
     // Validate sanitized request body
@@ -123,14 +129,8 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Transform database response to match frontend expectations
-    const rsvpData: RSVPData = {
-      id: dbRsvp.id as number,
-      name: dbRsvp.name as string,
-      relationship: dbRsvp.relationship as string,
-      attendance: dbRsvp.attendance as 'yes' | 'no' | 'maybe',
-      message: (dbRsvp.message as string) || '',
-    };
+    // Transform database response (snake_case) to client format (camelCase)
+    const rsvpData: RSVPData = toCamelCase<RSVPData>(dbRsvp);
 
     const response = {
       message: isUpdate

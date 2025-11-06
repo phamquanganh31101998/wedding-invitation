@@ -1,9 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
-import { TenantContextType, TenantConfig } from '@/types';
+import { TenantContextType } from '@/types';
 import { extractTenantFromPath } from '@/utils/tenant-client';
+import { useTenantConfig } from '@/features/tenant/services/tenant.hooks';
 
 // Create the context
 const TenantContext = createContext<TenantContextType | undefined>(undefined);
@@ -27,61 +28,24 @@ export function TenantProvider({
   tenantSlug: propTenantId,
 }: TenantProviderProps) {
   const pathname = usePathname();
-  const [config, setConfig] = useState<TenantConfig | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Extract tenant ID from props or URL path
   const tenantSlug = propTenantId || extractTenantFromPath(pathname);
 
-  useEffect(() => {
-    async function loadTenantConfig() {
-      setIsLoading(true);
-      setError(null);
-      setConfig(null);
-
-      if (!tenantSlug) {
-        // No tenant ID provided, use default state
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Load tenant configuration via API (this also validates tenant exists)
-        const configResponse = await fetch(
-          `/api/tenant?tenant=${encodeURIComponent(tenantSlug)}`
-        );
-
-        if (!configResponse.ok) {
-          const errorData = await configResponse.json();
-          setError(
-            errorData.error ||
-              `Configuration not found for tenant '${tenantSlug}'`
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        const configData = await configResponse.json();
-        setConfig(configData.data);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(`Failed to load tenant configuration: ${errorMessage}`);
-        console.error('Error loading tenant configuration:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadTenantConfig();
-  }, [tenantSlug, pathname]);
+  // Use React Query to fetch tenant configuration
+  const {
+    data: tenantData,
+    isLoading,
+    error,
+  } = useTenantConfig(tenantSlug, {
+    enabled: !!tenantSlug,
+  });
 
   const contextValue: TenantContextType = {
     tenantSlug, // This is the slug from the URL
-    config,
+    config: tenantData?.data || null,
     isLoading,
-    error,
+    error: error?.message || null,
   };
 
   return (

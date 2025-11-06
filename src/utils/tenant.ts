@@ -1,4 +1,4 @@
-import { getTenantBySlug } from './database';
+import { getTenantBySlug } from '@/repositories/tenant-repository';
 import { TenantValidationResult } from '@/types';
 
 /**

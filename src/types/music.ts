@@ -40,10 +40,8 @@ export interface AudioContextValue {
   controls: {
     play: () => void;
     pause: () => void;
+    setError: (hasError: boolean) => void;
+    nextTrack: () => void;
     loadMusic: () => Promise<void>;
   };
-}
-
-export interface MusicPlayerProps {
-  theme?: 'light' | 'dark';
 }
