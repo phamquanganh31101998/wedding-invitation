@@ -199,3 +199,6 @@ export interface TenantValidationResult {
 
 // Music Player Types
 export * from './music';
+
+// Gallery Types
+export * from './gallery';
