@@ -5,7 +5,6 @@ import {
   FormLabel,
   Textarea,
   FormErrorMessage,
-  FormHelperText,
   Text,
   Flex,
 } from '@chakra-ui/react';
@@ -35,9 +34,7 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
 
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired}>
-        <FormLabel htmlFor="message-field">
-          Lời Nhắn Gửi Cô Dâu Chú Rể
-        </FormLabel>
+        <FormLabel htmlFor="message-field">Lời nhắn gửi chúng mình</FormLabel>
         <Textarea
           ref={ref}
           id="message-field"
@@ -59,15 +56,10 @@ const MessageField = forwardRef<HTMLTextAreaElement, MessageFieldProps>(
         {/* Character Counter and Helper/Error Text */}
         <Flex justify="space-between" align="center" mt={2}>
           <div>
-            {error ? (
+            {error && (
               <FormErrorMessage id="message-error" mt={0} textAlign="left">
                 {error}
               </FormErrorMessage>
-            ) : (
-              <FormHelperText id="message-helper" mt={0} textAlign="left">
-                Chia sẻ suy nghĩ, lời chúc tốt đẹp hoặc niềm vui cho ngày trọng
-                đại
-              </FormHelperText>
             )}
           </div>
           <Text

@@ -7,7 +7,6 @@ import {
   Radio,
   Stack,
   FormErrorMessage,
-  FormHelperText,
 } from '@chakra-ui/react';
 import { forwardRef } from 'react';
 
@@ -22,11 +21,11 @@ interface AttendanceFieldProps {
 const ATTENDANCE_OPTIONS = [
   {
     value: 'yes',
-    label: 'Có',
+    label: 'Đến ngay',
   },
   {
     value: 'no',
-    label: 'Không',
+    label: 'Bận mất rồi :(',
   },
 ];
 
@@ -34,7 +33,7 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
   ({ value, onChange, error, isRequired = true, isDisabled = false }, ref) => {
     return (
       <FormControl isInvalid={!!error} isRequired={isRequired} ref={ref}>
-        <FormLabel htmlFor="attendance-field">Bạn có tham dự không?</FormLabel>
+        <FormLabel htmlFor="attendance-field">Bạn sẽ đến chứ?</FormLabel>
         <RadioGroup
           id="attendance-field"
           name="attendance"
@@ -66,15 +65,10 @@ const AttendanceField = forwardRef<HTMLDivElement, AttendanceFieldProps>(
             ))}
           </Stack>
         </RadioGroup>
-        {error ? (
+        {error && (
           <FormErrorMessage id="attendance-error" textAlign="left">
             {error}
           </FormErrorMessage>
-        ) : (
-          <FormHelperText id="attendance-helper" textAlign="left">
-            Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của
-            chúng tôi không
-          </FormHelperText>
         )}
       </FormControl>
     );

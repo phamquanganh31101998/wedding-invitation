@@ -1,0 +1,74 @@
+# Implementation Plan
+
+- [x] 1. Create API endpoint for gallery photos
+  - Implement GET /api/gallery route to fetch photos by tenant and type
+  - Add error handling and proper HTTP status codes
+  - Integrate with existing file repository for data access
+  - _Requirements: 1.1_
+
+- [x] 2. Set up gallery data types and services
+  - [x] 2.1 Create gallery types and interfaces
+    - Define GalleryPhoto interface matching file schema
+    - Create API response types for gallery endpoints
+    - _Requirements: 1.1_
+  - [x] 2.2 Implement gallery service hooks
+    - Create React Query hooks for fetching gallery photos
+    - Add caching and error handling for API requests
+    - _Requirements: 1.1, 2.4_
+
+- [x] 3. Build core gallery components
+  - [x] 3.1 Create GallerySection container component
+    - Implement main gallery container with title and description
+    - Add loading and error states for photo fetching
+    - Integrate with gallery service hooks
+    - _Requirements: 1.1, 1.2, 2.4_
+  - [x] 3.2 Implement PhotoGrid component
+    - Create responsive 2-column grid layout using Chakra UI
+    - Handle photo click events for lightbox opening
+    - Add loading skeleton states for better UX
+    - _Requirements: 1.2, 2.1, 2.2, 2.5_
+  - [x] 3.3 Build PhotoItem component
+    - Display individual photos with proper aspect ratios
+    - Show photo captions using name field from database
+    - Implement lazy loading for performance optimization
+    - _Requirements: 1.5, 2.4, 2.5_
+
+- [x] 4. Implement lightbox functionality
+  - [x] 4.1 Create Lightbox component
+    - Build full-screen photo viewer with navigation controls
+    - Display current photo position counter
+    - Show photo captions and metadata
+    - _Requirements: 3.1, 3.2_
+  - [x] 4.2 Add navigation and keyboard controls
+    - Implement next/previous navigation buttons
+    - Add keyboard support (arrow keys, ESC to close)
+    - Handle edge cases (first/last photo navigation)
+    - _Requirements: 3.1, 3.3, 3.4_
+  - [x] 4.3 Add mobile touch gestures
+    - Implement swipe navigation for mobile devices
+    - Add touch gesture support for lightbox interaction
+    - Ensure responsive behavior across all screen sizes
+    - _Requirements: 2.1, 2.3_
+
+- [x] 5. Integrate gallery with main application
+  - [x] 5.1 Add to Homepage
+    - Add GallerySection before RSVPForm in Home page
+    - Implement proper metadata and SEO optimization
+    - _Requirements: 4.1, 4.2_
+  - [x] 5.2 Apply consistent theming and styling
+    - Use Chakra UI theme for consistent design
+    - Implement elegant transitions and animations
+    - Ensure accessibility with proper ARIA labels
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+
+- [x] 6. Add performance optimizations
+  - [x] 6.1 Implement image optimization
+    - Use Next.js Image component for automatic optimization
+    - Add responsive image sizes and WebP format support
+    - Implement progressive loading for better perceived performance
+    - _Requirements: 2.4_
+  - [x] 6.2 Add advanced loading states
+    - Create smooth loading transitions between photos
+    - Implement image preloading in lightbox for better navigation
+    - Add intersection observer for lazy loading optimization
+    - _Requirements: 2.4, 3.5_

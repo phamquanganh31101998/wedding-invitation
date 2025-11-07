@@ -37,6 +37,7 @@ const MapSection = ({
           lg: '420px',
           xl: '420px',
         }}
+        paddingX={0}
       >
         <VStack spacing={6} align="stretch">
           <VStack spacing={2} textAlign="center">

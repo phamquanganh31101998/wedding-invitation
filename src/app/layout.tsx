@@ -18,7 +18,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: 'Thiệp Cưới',
-  description: 'Bạn được mời tham dự ngày đặc biệt của chúng tôi',
+  description:
+    'Bạn được mời tham dự ngày đặc biệt của chúng tôi. Xem những khoảnh khắc đáng nhớ và gửi phản hồi tham dự.',
+  keywords: 'thiệp cưới, wedding invitation, photo gallery, RSVP, kết hôn',
+  openGraph: {
+    title: 'Thiệp Cưới',
+    description:
+      'Bạn được mời tham dự ngày đặc biệt của chúng tôi. Xem những khoảnh khắc đáng nhớ và gửi phản hồi tham dự.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({

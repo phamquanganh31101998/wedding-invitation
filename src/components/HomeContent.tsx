@@ -4,6 +4,7 @@ import Layout from '@/components/layout/Layout';
 import { FloatingMusicButton } from '@/features/music';
 import CountdownSection from '@/components/section/CountdownSection';
 import RSVPSection from '@/components/section/RSVPSection';
+import { GallerySection } from '@/components/section/GallerySection';
 import {
   VStack,
   Text,
@@ -112,6 +113,13 @@ export default function HomeContent() {
 
         {/* Countdown Timer with Error Boundary */}
         <CountdownSection targetDate={targetDate} />
+
+        {/* Photo Gallery */}
+        <GallerySection
+          tenantSlug={tenantSlug as string}
+          title="Khoảnh Khắc Đáng Nhớ"
+          description="Những hình ảnh đẹp trong hành trình của chúng tôi"
+        />
 
         <RSVPSection guestId={guestId} guest={guest} tenantSlug={tenantSlug} />
 
