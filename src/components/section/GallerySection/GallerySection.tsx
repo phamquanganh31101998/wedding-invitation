@@ -23,7 +23,7 @@ export function GallerySection({
   title = 'Our Gallery',
   description = 'Capturing our beautiful moments together',
 }: GallerySectionProps) {
-  const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
+  const [lightboxIndex, setLightboxIndex] = useState<number>(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Fetch gallery photos using the existing hook
@@ -46,31 +46,12 @@ export function GallerySection({
   // Handle lightbox close
   const handleLightboxClose = useCallback(() => {
     setIsLightboxOpen(false);
-    setLightboxIndex(-1);
   }, []);
-
-  // Handle lightbox navigation
-  const handleLightboxNext = useCallback(() => {
-    if (lightboxIndex < photos.length - 1) {
-      setLightboxIndex(lightboxIndex + 1);
-    }
-  }, [lightboxIndex, photos.length]);
-
-  const handleLightboxPrevious = useCallback(() => {
-    if (lightboxIndex > 0) {
-      setLightboxIndex(lightboxIndex - 1);
-    }
-  }, [lightboxIndex]);
 
   // Keyboard navigation is now handled by the Lightbox component itself
 
   return (
-    <Box
-      as="section"
-      py={{ base: 1 }}
-      role="region"
-      aria-labelledby="gallery-heading"
-    >
+    <Box as="section" role="region" aria-labelledby="gallery-heading">
       <Container maxW="container.lg">
         <VStack spacing={8} align="stretch">
           {/* Gallery Header */}
@@ -146,11 +127,9 @@ export function GallerySection({
       {photos.length > 0 && (
         <Lightbox
           photos={photos}
-          currentIndex={lightboxIndex}
+          initialIndex={lightboxIndex}
           isOpen={isLightboxOpen}
           onClose={handleLightboxClose}
-          onNext={handleLightboxNext}
-          onPrevious={handleLightboxPrevious}
         />
       )}
     </Box>

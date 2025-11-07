@@ -21,14 +21,31 @@ import { LightboxProps } from '@/types/gallery';
 
 export function Lightbox({
   photos,
-  currentIndex,
+  initialIndex,
   isOpen,
   onClose,
-  onNext,
-  onPrevious,
 }: LightboxProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const isMobile = useBreakpointValue({ base: true, md: false });
   const currentPhoto = photos[currentIndex];
+
+  // Update current index when initialIndex changes
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
+
+  // Handle lightbox navigation
+  const handleNext = useCallback(() => {
+    if (currentIndex < photos.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
+  }, [currentIndex, photos.length]);
+
+  const handlePrevious = useCallback(() => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  }, [currentIndex]);
 
   // Touch gesture state
   const touchStartX = useRef<number>(0);
@@ -111,17 +128,17 @@ export function Lightbox({
           break;
         case 'ArrowLeft':
           if (currentIndex > 0) {
-            onPrevious();
+            handlePrevious();
           }
           break;
         case 'ArrowRight':
           if (currentIndex < photos.length - 1) {
-            onNext();
+            handleNext();
           }
           break;
       }
     },
-    [isOpen, currentIndex, photos.length, onClose, onNext, onPrevious]
+    [isOpen, currentIndex, photos.length, onClose, handleNext, handlePrevious]
   );
 
   useEffect(() => {
@@ -155,12 +172,12 @@ export function Lightbox({
       if (swipeDistance > 0) {
         // Swiped left - go to next photo
         if (currentIndex < photos.length - 1) {
-          onNext();
+          handleNext();
         }
       } else {
         // Swiped right - go to previous photo
         if (currentIndex > 0) {
-          onPrevious();
+          handlePrevious();
         }
       }
     }
@@ -172,8 +189,8 @@ export function Lightbox({
     isDragging,
     currentIndex,
     photos.length,
-    onNext,
-    onPrevious,
+    handleNext,
+    handlePrevious,
     minSwipeDistance,
   ]);
 
@@ -257,7 +274,7 @@ export function Lightbox({
                   }}
                   _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
                   isDisabled={isFirstPhoto}
-                  onClick={onPrevious}
+                  onClick={handlePrevious}
                   transition="all 0.2s ease"
                 />
 
@@ -282,7 +299,7 @@ export function Lightbox({
                   }}
                   _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
                   isDisabled={isLastPhoto}
-                  onClick={onNext}
+                  onClick={handleNext}
                   transition="all 0.2s ease"
                 />
               </>
@@ -403,7 +420,7 @@ export function Lightbox({
                       }}
                       _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
                       isDisabled={isFirstPhoto}
-                      onClick={onPrevious}
+                      onClick={handlePrevious}
                       transition="all 0.2s ease"
                     />
 
@@ -420,7 +437,7 @@ export function Lightbox({
                       }}
                       _disabled={{ opacity: 0.3, cursor: 'not-allowed' }}
                       isDisabled={isLastPhoto}
-                      onClick={onNext}
+                      onClick={handleNext}
                       transition="all 0.2s ease"
                     />
                   </HStack>

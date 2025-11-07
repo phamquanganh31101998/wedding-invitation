@@ -44,11 +44,9 @@ export interface PhotoItemProps {
 
 export interface LightboxProps {
   photos: GalleryPhoto[];
-  currentIndex: number;
+  initialIndex: number;
   isOpen: boolean;
   onClose: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
 }
 
 // Gallery service hook options

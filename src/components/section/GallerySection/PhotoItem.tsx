@@ -47,8 +47,8 @@ export function PhotoItem({ photo, onClick, loading = false }: PhotoItemProps) {
 
   if (loading) {
     return (
-      <AspectRatio ratio={4 / 3}>
-        <Skeleton borderRadius="md" />
+      <AspectRatio ratio={1 / 1}>
+        <Skeleton borderRadius="lg" />
       </AspectRatio>
     );
   }
@@ -86,7 +86,7 @@ export function PhotoItem({ photo, onClick, loading = false }: PhotoItemProps) {
       aria-label={photo.name ? `View photo: ${photo.name}` : 'View photo'}
       border="2px solid transparent"
     >
-      <AspectRatio ratio={4 / 3}>
+      <AspectRatio ratio={1 / 1}>
         <Box position="relative" w="full" h="full">
           {/* Loading skeleton with smooth transition */}
           {(imageLoading || !shouldLoad) && (
@@ -136,7 +136,7 @@ export function PhotoItem({ photo, onClick, loading = false }: PhotoItemProps) {
                 opacity: imageLoading ? 0 : 1,
                 transform: imageLoading ? 'scale(1.05)' : 'scale(1)',
               }}
-              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 60vw"
               quality={85}
               priority={false}
               placeholder="blur"
@@ -171,16 +171,7 @@ export function PhotoItem({ photo, onClick, loading = false }: PhotoItemProps) {
                   pt: 1,
                 },
               }}
-            >
-              <Text
-                fontSize="sm"
-                fontWeight="medium"
-                noOfLines={2}
-                lineHeight="short"
-              >
-                {photo.name}
-              </Text>
-            </Box>
+            ></Box>
           )}
 
           {/* Hover overlay */}
@@ -198,15 +189,6 @@ export function PhotoItem({ photo, onClick, loading = false }: PhotoItemProps) {
           />
         </Box>
       </AspectRatio>
-
-      {/* Caption below image for mobile */}
-      {photo.name && (
-        <Box display={{ base: 'block', md: 'none' }} p={2} pt={1}>
-          <Text fontSize="sm" color="gray.600" noOfLines={2} lineHeight="short">
-            {photo.name}
-          </Text>
-        </Box>
-      )}
     </Box>
   );
 }

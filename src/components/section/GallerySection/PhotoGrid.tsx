@@ -4,15 +4,26 @@ import { PhotoGridProps } from '@/types/gallery';
 import { PhotoItem } from './PhotoItem';
 
 // CSS animation styles
-const fadeInUpAnimation = `
-  @keyframes fadeInUp {
+const fadeInAnimations = `
+  @keyframes fadeInFromLeft {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateX(-50px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes fadeInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 `;
@@ -22,20 +33,22 @@ export function PhotoGrid({ photos, onPhotoClick, isLoading }: PhotoGridProps) {
   if (isLoading) {
     return (
       <>
-        <style dangerouslySetInnerHTML={{ __html: fadeInUpAnimation }} />
-        <SimpleGrid columns={2} spacing={{ base: 3, md: 4 }} w="full">
-          {Array.from({ length: 6 }).map((_, index) => (
+        <style dangerouslySetInnerHTML={{ __html: fadeInAnimations }} />
+        <SimpleGrid columns={1} spacing={{ base: 4, md: 6 }} w="full">
+          {Array.from({ length: 3 }).map((_, index) => (
             <Box
               key={index}
               style={{
-                animation: 'fadeInUp 0.6s ease forwards',
-                animationDelay: `${index * 0.1}s`,
+                animation: `${
+                  index % 2 === 0 ? 'fadeInFromLeft' : 'fadeInFromRight'
+                } 0.8s ease forwards`,
+                animationDelay: `${index * 0.2}s`,
                 opacity: 0,
               }}
             >
               <Skeleton
-                aspectRatio={4 / 3}
-                borderRadius="md"
+                aspectRatio={1 / 1}
+                borderRadius="lg"
                 startColor="gray.100"
                 endColor="gray.200"
                 speed={1.5}
@@ -50,10 +63,10 @@ export function PhotoGrid({ photos, onPhotoClick, isLoading }: PhotoGridProps) {
   // Render photo grid
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: fadeInUpAnimation }} />
+      <style dangerouslySetInnerHTML={{ __html: fadeInAnimations }} />
       <SimpleGrid
-        columns={2}
-        spacing={{ base: 3, md: 4 }}
+        columns={1}
+        spacing={{ base: 4, md: 6 }}
         w="full"
         role="grid"
         aria-label="Photo gallery grid"
@@ -63,10 +76,12 @@ export function PhotoGrid({ photos, onPhotoClick, isLoading }: PhotoGridProps) {
             key={photo.id}
             role="gridcell"
             transition="transform 0.3s ease, opacity 0.3s ease"
-            _hover={{ transform: 'translateY(-2px)' }}
+            _hover={{ transform: 'scale(1.02)' }}
             style={{
-              animation: 'fadeInUp 0.6s ease forwards',
-              animationDelay: `${index * 0.1}s`,
+              animation: `${
+                index % 2 === 0 ? 'fadeInFromLeft' : 'fadeInFromRight'
+              } 0.8s ease forwards`,
+              animationDelay: `${index * 0.2}s`,
               opacity: 0,
             }}
           >

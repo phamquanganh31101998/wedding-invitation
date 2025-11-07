@@ -123,7 +123,7 @@ const RSVPForm: React.FC<RSVPFormProps> = ({
   }
 
   return (
-    <Box maxW={{ base: '100%', sm: 'md' }} p={{ base: 4, sm: 6 }} w="full">
+    <Box maxW={{ base: '100%', sm: 'md' }} py={{ base: 4, sm: 6 }} w="full">
       <Formik
         enableReinitialize
         initialValues={initialValues}
