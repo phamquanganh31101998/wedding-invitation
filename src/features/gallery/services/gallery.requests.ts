@@ -10,17 +10,13 @@ import {
 export async function getGalleryPhotos(
   request: GetGalleryPhotosRequest = {}
 ): Promise<GetGalleryPhotosResponse> {
-  const { tenantSlug, type = 'photo' } = request;
+  const { tenantSlug } = request;
 
   let url = '/api/gallery';
   const params = new URLSearchParams();
 
   if (tenantSlug) {
     params.append('tenant', tenantSlug);
-  }
-
-  if (type) {
-    params.append('type', type);
   }
 
   if (params.toString()) {

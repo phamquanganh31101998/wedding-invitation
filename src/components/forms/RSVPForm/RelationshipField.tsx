@@ -5,7 +5,6 @@ import {
   FormLabel,
   Input,
   FormErrorMessage,
-  FormHelperText,
   Box,
   List,
   ListItem,
@@ -91,7 +90,7 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
         position="relative"
       >
         <FormLabel htmlFor="position-field">
-          Mối Quan Hệ Với Cô Dâu Chú Rể
+          Bạn quen biết cô dâu chú rể như thế nào?
         </FormLabel>
         <Input
           ref={ref || inputRef}
@@ -159,14 +158,10 @@ const PositionField = forwardRef<HTMLInputElement, PositionFieldProps>(
           </Box>
         )}
 
-        {error ? (
+        {error && (
           <FormErrorMessage id="position-error" textAlign="left">
             {error}
           </FormErrorMessage>
-        ) : (
-          <FormHelperText id="position-helper" textAlign="left">
-            Bạn quen biết cô dâu chú rể như thế nào?
-          </FormHelperText>
         )}
       </FormControl>
     );

@@ -30,7 +30,6 @@ export async function GET(
   try {
     const { searchParams } = new URL(request.url);
     const tenantParam = searchParams.get('tenant');
-    const typeParam = searchParams.get('type') || 'photo'; // Default to 'photo' type for gallery
 
     // Use tenant slug directly (default to 'default' if not provided)
     const tenantSlug = tenantParam || 'default';
@@ -61,7 +60,7 @@ export async function GET(
     }
 
     // Get gallery photos from database using tenant slug and type
-    const dbFiles = await getFilesByTenantAndType(tenantSlug, typeParam);
+    const dbFiles = await getFilesByTenantAndType(tenantSlug, 'image');
 
     if (!dbFiles || dbFiles.length === 0) {
       return NextResponse.json({

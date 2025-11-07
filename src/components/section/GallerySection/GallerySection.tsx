@@ -19,6 +19,7 @@ import { PhotoGrid } from './PhotoGrid';
 import { Lightbox } from './Lightbox';
 
 export function GallerySection({
+  tenantSlug,
   title = 'Our Gallery',
   description = 'Capturing our beautiful moments together',
 }: GallerySectionProps) {
@@ -32,7 +33,7 @@ export function GallerySection({
     isError,
     error,
     refetch,
-  } = useGalleryPhotos(undefined, 'photo');
+  } = useGalleryPhotos(tenantSlug);
 
   const photos = galleryData?.photos || [];
 
@@ -66,7 +67,7 @@ export function GallerySection({
   return (
     <Box
       as="section"
-      py={{ base: 12, md: 16 }}
+      py={{ base: 1 }}
       role="region"
       aria-labelledby="gallery-heading"
     >
@@ -77,7 +78,7 @@ export function GallerySection({
             <Heading
               as="h2"
               id="gallery-heading"
-              size={{ base: 'xl', md: '2xl' }}
+              size={{ base: 'md', md: 'md' }}
               fontWeight="light"
               color="brand.700"
               transition="color 0.2s ease"

@@ -25,6 +25,7 @@ export interface GalleryErrorResponse {
 
 // Props for gallery components
 export interface GallerySectionProps {
+  tenantSlug: string;
   title?: string;
   description?: string;
 }

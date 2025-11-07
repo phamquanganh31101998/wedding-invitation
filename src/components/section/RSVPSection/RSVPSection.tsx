@@ -19,8 +19,7 @@ export default function RSVPSection({
     <VStack spacing={8}>
       <Box>
         <Text fontSize={{ base: 'md', sm: 'lg' }} color="gray.600" px={2}>
-          Vui lòng cho chúng tôi biết bạn có thể tham dự ngày đặc biệt của chúng
-          tôi không
+          Bạn có thể tham dự hem?
         </Text>
       </Box>
 

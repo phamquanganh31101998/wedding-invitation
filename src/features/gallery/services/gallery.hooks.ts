@@ -11,7 +11,6 @@ import {
  */
 export function useGalleryPhotos(
   tenantSlug?: string,
-  type: string = 'photo',
   options: UseGalleryPhotosOptions = {}
 ): UseQueryResult<GetGalleryPhotosResponse, Error> {
   const {
@@ -21,9 +20,9 @@ export function useGalleryPhotos(
   } = options;
 
   return useQuery({
-    queryKey: GALLERY_QUERY_KEYS.photos(tenantSlug, type),
-    queryFn: () => getGalleryPhotos({ tenantSlug, type }),
-    enabled,
+    queryKey: GALLERY_QUERY_KEYS.photos(tenantSlug),
+    queryFn: () => getGalleryPhotos({ tenantSlug }),
+    enabled: !!tenantSlug || enabled,
     staleTime,
     gcTime: cacheTime,
     retry: (failureCount, error) => {

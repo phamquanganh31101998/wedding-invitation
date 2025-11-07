@@ -116,8 +116,9 @@ export default function HomeContent() {
 
         {/* Photo Gallery */}
         <GallerySection
+          tenantSlug={tenantSlug as string}
           title="Khoảnh Khắc Đáng Nhớ"
-          description="Những hình ảnh đẹp trong hành trình tình yêu của chúng tôi"
+          description="Những hình ảnh đẹp trong hành trình của chúng tôi"
         />
 
         <RSVPSection guestId={guestId} guest={guest} tenantSlug={tenantSlug} />
